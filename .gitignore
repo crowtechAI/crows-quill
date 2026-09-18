@@ -1,0 +1,8 @@
+.DS_Store
+*.bak
+*.pre-redesign.bak
+node_modules/
+.vercel
+__pycache__/
+*.pyc
+design-system/
