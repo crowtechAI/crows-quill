@@ -997,6 +997,7 @@ function updateEstimate() {
       else fixed += parseFloat(ex.price);
     }
   });
+
   const sub = base + fixed;
   const total = Math.round(sub * (1 + pct / 100));
   const deposit = Math.round(total * 0.5);
