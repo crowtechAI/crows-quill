@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Crow's Quill — Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../config.js"></script>
+<style>
+  :root {
+    --ink: #0e0c15;
+    --ink-soft: #1a1628;
+    --ink-soft2: #221d33;
+    --wine: #5c2438;
+    --wine-bright: #842f4c;
+    --bronze: #b08a4e;
+    --bronze-bright: #c9a05f;
+    --parchment: #f4efe6;
+    --lilac: #cdc4d9;
+    --lilac-dim: #8d859b;
+    --line: rgba(205, 196, 217, 0.12);
+    --line-gold: rgba(201, 160, 95, 0.22);
+    --ok: #6e8f6b;
+    --warn: #c9a05f;
+    --err: #d98fa0;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--ink); color:var(--lilac); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; }
+  h1,h2,h3 { font-family:'Cormorant Garamond',serif; color:var(--parchment); font-weight:600; }
+  .topbar { display:flex; align-items:center; justify-content:space-between; padding:18px 28px; border-bottom:1px solid var(--line); background:rgba(14,12,21,0.9); }
+  .brand { font-family:'Cormorant Garamond',serif; font-size:21px; color:var(--parchment); font-weight:600; }
+  .brand em { color:var(--bronze-bright); font-style:italic; }
+  #signOutBtn { background:transparent; border:1px solid var(--line); color:var(--lilac-dim); padding:8px 16px; border-radius:4px; font-size:13px; cursor:pointer; transition:all 0.2s; }
+  #signOutBtn:hover { border-color:var(--bronze-bright); color:var(--parchment); }
+
+  .auth-wrap { max-width:360px; margin:100px auto; padding:0 24px; }
+  .auth-wrap h2 { margin-bottom:8px; }
+  .auth-wrap p.sub { color:var(--lilac-dim); font-size:14px; margin-bottom:24px; }
+  .field { margin-bottom:14px; }
+  label { font-size:12.5px; color:var(--lilac-dim); display:block; margin-bottom:5px; }
+  input, select, textarea { width:100%; background:var(--ink-soft); border:1px solid var(--line); border-radius:4px; padding:10px 12px; color:var(--lilac); font-family:'Inter'; font-size:14px; }
+  input:focus, select:focus, textarea:focus { outline:2px solid var(--bronze); outline-offset:1px; }
+  :focus-visible { outline:2px solid var(--bronze-bright); outline-offset:2px; border-radius:4px; }
+  .btn { background:var(--bronze); color:var(--ink); font-weight:600; border:none; padding:11px 20px; min-height:44px; border-radius:4px; font-size:14px; cursor:pointer; transition:background .15s; }
+  .btn:hover { background:var(--bronze-bright); }
+  .btn:disabled { opacity:.4; cursor:not-allowed; }
+  .btn-ghost { background:transparent; border:1px solid var(--line); color:var(--lilac); padding:11px 18px; min-height:44px; border-radius:4px; font-size:14px; cursor:pointer; transition:border-color .15s, color .15s; }
+  .btn-ghost:hover { border-color:var(--bronze-bright); color:var(--parchment); }
+  .link-btn { background:none; border:none; color:var(--bronze-bright); font-size:13px; cursor:pointer; padding:0; margin-top:14px; min-height:44px; }
+  .auth-err { color:var(--err); font-size:13px; margin-top:10px; display:none; }
+
+  .layout { display:flex; min-height:calc(100vh - 61px); }
+  .sidebar { width:200px; border-right:1px solid var(--line); padding:22px 12px; flex-shrink:0; }
+  .sidebar .tab { display:block; width:100%; min-height:44px; text-align:left; background:none; border:none; color:var(--lilac-dim); font-size:14px; padding:12px; border-radius:4px; cursor:pointer; margin-bottom:2px; transition:background .15s, color .15s; }
+  .sidebar .tab:hover { background:var(--ink-soft2); color:var(--parchment); }
+  .sidebar .tab.active { background:var(--ink-soft2); color:#f2eee6; }
+  .sidebar .tab .count { float:right; color:var(--lilac-dim); font-size:12px; }
+
+  .main { flex:1; padding:26px 30px; overflow-y:auto; }
+  .list-row { display:grid; grid-template-columns:1.4fr 1fr 0.8fr 0.8fr 0.6fr; gap:14px; align-items:center; padding:14px 16px; border:1px solid var(--line); border-radius:6px; margin-bottom:10px; cursor:pointer; background:var(--ink-soft); transition:border-color .15s; }
+  .list-row:hover { border-color:var(--bronze); }
+  .list-row .name { color:#f2eee6; font-size:15px; }
+  .list-row .sub { color:var(--lilac-dim); font-size:12.5px; margin-top:2px; }
+  .badge { display:inline-block; padding:4px 10px; border-radius:20px; font-size:11.5px; font-weight:600; text-transform:capitalize; }
+  .badge.enquiry { background:rgba(148,141,163,0.2); color:var(--lilac-dim); }
+  .badge.quoted { background:rgba(201,160,95,0.18); color:var(--bronze-bright); }
+  .badge.accepted { background:rgba(110,143,107,0.18); color:var(--ok); }
+  .badge.in_progress { background:rgba(92,36,56,0.35); color:#e8a8bb; }
+  .badge.delivered { background:rgba(110,143,107,0.3); color:#8fc78a; }
+  .badge.declined, .badge.cancelled { background:rgba(193,127,143,0.15); color:var(--err); }
+  .empty { color:var(--lilac-dim); font-size:14px; padding:40px 0; text-align:center; }
+
+  .overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:flex-start; justify-content:flex-end; z-index:100; }
+  .overlay.show { display:flex; }
+  .panel { width:min(480px, 100vw); height:100vh; background:var(--ink-soft); border-left:1px solid var(--line); padding:26px; overflow-y:auto; }
+  .panel h2 { font-size:22px; margin-bottom:2px; }
+  .panel .close { float:right; background:none; border:none; color:var(--lilac-dim); font-size:20px; cursor:pointer; width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:50%; transition:background .15s, color .15s; }
+  .panel .close:hover { background:var(--ink-soft2); color:var(--parchment); }
+  .list-row:focus-visible { outline:2px solid var(--bronze-bright); outline-offset:2px; }
+  .sidebar .tab:focus-visible { outline:2px solid var(--bronze-bright); outline-offset:-2px; }
+  .panel-section { margin-top:22px; padding-top:18px; border-top:1px solid var(--line); }
+  .panel-section h3 { font-size:14px; color:var(--bronze-bright); margin-bottom:10px; }
+  .kv { display:flex; justify-content:space-between; font-size:13.5px; padding:6px 0; color:var(--lilac); }
+  .kv span:first-child { color:var(--lilac-dim); }
+  .brief-text { font-size:13.5px; color:var(--lilac); background:var(--ink); padding:12px; border-radius:5px; margin-top:6px; }
+  .file-row { display:flex; justify-content:space-between; align-items:center; font-size:13px; padding:6px 0; border-bottom:1px solid var(--line); }
+  .status-row { display:flex; gap:10px; margin-top:8px; }
+  .chk-row { display:flex; align-items:center; gap:8px; font-size:13.5px; margin-top:8px; }
+  .loading-msg { color:var(--lilac-dim); padding:30px 0; }
+</style>
+</head>
+<body>
+
+<div id="authView" style="display:none;">
+  <div class="topbar"><div class="brand">The Crow's <em>Quill</em> Studio</div></div>
+  <div class="auth-wrap">
+    <h2>Sign in</h2>
+    <p class="sub" id="authSub">Studio access for The Crow's Quill.</p>
+    <div class="field"><label for="authEmail">Email</label><input type="email" id="authEmail"></div>
+    <div class="field"><label for="authPass">Password</label><input type="password" id="authPass"></div>
+    <button class="btn" id="authSubmit" style="width:100%;">Sign in</button>
+    <p class="auth-err" id="authErr"></p>
+    <button class="link-btn" id="authToggle">First time here? Create your studio account</button>
+  </div>
+</div>
+
+<div id="appView" style="display:none;">
+  <div class="topbar">
+    <div class="brand">The Crow's <em>Quill</em> Studio</div>
+    <button id="signOutBtn">Sign out</button>
+  </div>
+  <div class="layout">
+    <div class="sidebar" id="sidebarTabs"></div>
+    <div class="main">
+      <div id="listWrap"><p class="loading-msg">Loading commissions…</p></div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="panel" id="panel"></div>
+</div>
+
+<script>
+const sb = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+let allCommissions = [];
+let activeTab = 'all';
+let isSignup = false;
+
+const TABS = [
+  { key:'all', label:'All' },
+  { key:'enquiry', label:'Enquiries' },
+  { key:'quoted', label:'Quoted' },
+  { key:'accepted', label:'Accepted' },
+  { key:'in_progress', label:'In progress' },
+  { key:'delivered', label:'Delivered' },
+  { key:'declined', label:'Declined / cancelled' },
+];
+
+// ---------- Auth ----------
+document.getElementById('authToggle').addEventListener('click', () => {
+  isSignup = !isSignup;
+  document.getElementById('authSubmit').textContent = isSignup ? 'Create account' : 'Sign in';
+  document.getElementById('authSub').textContent = isSignup
+    ? 'Create the studio account. Only do this once.'
+    : "Studio access for The Crow's Quill.";
+  document.getElementById('authToggle').textContent = isSignup
+    ? 'Already have an account? Sign in'
+    : 'First time here? Create your studio account';
+});
+
+document.getElementById('authSubmit').addEventListener('click', async () => {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPass').value;
+  const errEl = document.getElementById('authErr');
+  errEl.style.display = 'none';
+  const fn = isSignup ? sb.auth.signUp({ email, password }) : sb.auth.signInWithPassword({ email, password });
+  const { error } = await fn;
+  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+  if (isSignup) { errEl.style.color = 'var(--ok)'; errEl.textContent = 'Account created — check your email to confirm, then sign in.'; errEl.style.display = 'block'; }
+});
+
+document.getElementById('signOutBtn').addEventListener('click', () => sb.auth.signOut());
+
+sb.auth.onAuthStateChange((_event, session) => {
+  if (session) {
+    document.getElementById('authView').style.display = 'none';
+    document.getElementById('appView').style.display = 'block';
+    renderSidebar();
+    loadCommissions();
+  } else {
+    document.getElementById('authView').style.display = 'block';
+    document.getElementById('appView').style.display = 'none';
+  }
+});
+
+// ---------- Sidebar ----------
+function renderSidebar() {
+  const wrap = document.getElementById('sidebarTabs');
+  wrap.innerHTML = '';
+  TABS.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'tab' + (t.key === activeTab ? ' active' : '');
+    btn.innerHTML = `${t.label} <span class="count" id="count-${t.key}"></span>`;
+    btn.addEventListener('click', () => { activeTab = t.key; renderSidebar(); renderList(); });
+    wrap.appendChild(btn);
+  });
+}
+
+// ---------- Load & list ----------
+async function loadCommissions() {
+  const { data, error } = await sb
+    .from('commissions')
+    .select('*, client:clients(*), slot:slots(*), quotes(*), contracts(*), commission_files(*)')
+    .order('created_at', { ascending: false });
+  if (error) { document.getElementById('listWrap').innerHTML = '<p class="empty">Could not load commissions.</p>'; console.error(error); return; }
+  allCommissions = data || [];
+  updateCounts();
+  renderList();
+}
+
+function updateCounts() {
+  TABS.forEach(t => {
+    const el = document.getElementById('count-' + t.key);
+    if (!el) return;
+    const n = t.key === 'all' ? allCommissions.length
+      : t.key === 'declined' ? allCommissions.filter(c => c.status === 'declined' || c.status === 'cancelled').length
+      : allCommissions.filter(c => c.status === t.key).length;
+    el.textContent = n;
+  });
+}
+
+function renderList() {
+  const wrap = document.getElementById('listWrap');
+  let items = allCommissions;
+  if (activeTab === 'declined') items = items.filter(c => c.status === 'declined' || c.status === 'cancelled');
+  else if (activeTab !== 'all') items = items.filter(c => c.status === activeTab);
+
+  if (!items.length) { wrap.innerHTML = '<p class="empty">Nothing here yet.</p>'; return; }
+
+  wrap.innerHTML = '';
+  items.forEach(c => {
+    const row = document.createElement('div');
+    row.className = 'list-row';
+    row.setAttribute('role', 'button');
+    row.setAttribute('tabindex', '0');
+    const name = c.client?.name || 'Unknown';
+    row.setAttribute('aria-label', `Open commission for ${name}, status ${c.status.replace('_',' ')}`);
+    const slotDate = c.slot ? new Date(c.slot.slot_date).toLocaleDateString('en-GB', { day:'numeric', month:'short' }) : '—';
+    row.innerHTML = `
+      <div><div class="name">${name}</div><div class="sub">${c.client?.book_title || ''}</div></div>
+      <div class="sub">${labelFromType(c.commission_type)}</div>
+      <div class="sub">${slotDate}</div>
+      <div class="sub">£${c.total_price ?? '—'}</div>
+      <div><span class="badge ${c.status}">${c.status.replace('_',' ')}</span></div>
+    `;
+    row.addEventListener('click', () => openPanel(c));
+    row.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPanel(c); }
+    });
+    wrap.appendChild(row);
+  });
+}
+
+function labelFromType(id) {
+  const map = { portrait1:'Portrait — 1 char', half1:'Half body — 1 char', full1:'Full body — 1 char',
+    portrait2:'Portrait — 2 char', half2:'Half body — 2 char', full2:'Full body — 2 char',
+    scenebasic1:'Scene, basic — 1 char', scenedetail1:'Scene, detailed — 1 char',
+    scenebasic2:'Scene, basic — 2 char', scenedetail2:'Scene, detailed — 2 char' };
+  return map[id] || id;
+}
+
+// ---------- Detail panel ----------
+function openPanel(c) {
+  const overlay = document.getElementById('overlay');
+  const panel = document.getElementById('panel');
+  const quote = c.quotes?.[0];
+  const contract = c.contracts?.[0];
+  const slotDate = c.slot ? new Date(c.slot.slot_date).toLocaleDateString('en-GB', { day:'numeric', month:'long' }) : '—';
+
+  panel.innerHTML = `
+    <button class="close" id="closePanel" aria-label="Close panel">×</button>
+    <h2>${c.client?.name || 'Unknown'}</h2>
+    <div class="sub" style="color:var(--lilac-dim);font-size:13px;">${c.client?.email || ''}</div>
+
+    <div class="panel-section">
+      <h3>Commission</h3>
+      <div class="kv"><span>Type</span><span>${labelFromType(c.commission_type)}</span></div>
+      <div class="kv"><span>Book / series</span><span>${c.client?.book_title || '—'}</span></div>
+      <div class="kv"><span>Slot</span><span>${slotDate}</span></div>
+      <div class="kv"><span>Total</span><span>£${c.total_price ?? '—'}</span></div>
+      <div class="kv"><span>Deposit</span><span>£${c.deposit_amount ?? '—'}</span></div>
+      ${c.brief ? `<div class="brief-text">${c.brief}</div>` : ''}
+    </div>
+
+    <div class="panel-section">
+      <h3>Status</h3>
+      <select id="statusSelect">
+        ${['enquiry','quoted','accepted','declined','in_progress','delivered','cancelled'].map(s =>
+          `<option value="${s}" ${s === c.status ? 'selected' : ''}>${s.replace('_',' ')}</option>`).join('')}
+      </select>
+      <div class="chk-row"><input type="checkbox" id="depositChk" ${c.deposit_paid ? 'checked' : ''}><label for="depositChk" style="margin:0;">Deposit paid</label></div>
+      <div class="chk-row"><input type="checkbox" id="balanceChk" ${c.balance_paid ? 'checked' : ''}><label for="balanceChk" style="margin:0;">Balance paid</label></div>
+      <div class="status-row">
+        <button class="btn-ghost" id="sendPaymentLinkBtn" ${c.balance_paid ? 'disabled' : ''}>${c.balance_paid ? 'Fully paid' : (!c.deposit_paid ? (c.deposit_link_sent_at ? 'Resend deposit link' : 'Send deposit link') : (c.deposit_link_sent_at ? 'Resend balance link' : 'Send balance link'))}</button>
+      </div>
+      ${c.deposit_link_sent_at && !c.deposit_paid ? `<div class="sub" style="color:var(--lilac-dim);margin-top:6px;">Link sent ${new Date(c.deposit_link_sent_at).toLocaleString('en-GB')} — awaiting payment.</div>` : ''}
+      <p class="sub" id="paymentLinkMsg" style="margin-top:6px;display:none;"></p>
+      <div class="status-row"><button class="btn" id="saveStatus">Save changes</button></div>
+    </div>
+
+    ${quote ? `
+    <div class="panel-section">
+      <h3>Quote</h3>
+      <div class="kv"><span>Response</span><span>${quote.response}</span></div>
+      <div class="kv"><span>Sent</span><span>${new Date(quote.sent_at).toLocaleDateString('en-GB')}</span></div>
+    </div>` : ''}
+
+    ${contract ? `
+    <div class="panel-section">
+      <h3>Contract</h3>
+      <div class="kv"><span>Signed by</span><span>${contract.signature_name}</span></div>
+      <div class="kv"><span>Signed on</span><span>${new Date(contract.signed_at).toLocaleDateString('en-GB')}</span></div>
+    </div>` : ''}
+
+    <div class="panel-section">
+      <h3>Files</h3>
+      <div id="fileList">
+        ${(c.commission_files || []).map(f => `<div class="file-row"><span>${f.file_path.split('/').pop()} <span style="color:var(--lilac-dim);">(${f.file_type})</span></span></div>`).join('') || '<p class="sub" style="color:var(--lilac-dim);">No files yet.</p>'}
+      </div>
+      <div style="margin-top:12px;">
+        <label for="uploadType">Add a file</label>
+        <select id="uploadType" style="margin-bottom:8px;">
+          <option value="reference">Reference</option>
+          <option value="sketch">Sketch</option>
+          <option value="final_delivery">Final delivery</option>
+          <option value="other">Other</option>
+        </select>
+        <input type="file" id="uploadInput">
+        <button class="btn-ghost" id="uploadBtn" style="margin-top:8px;">Upload</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('closePanel').addEventListener('click', () => overlay.classList.remove('show'));
+
+  document.getElementById('sendPaymentLinkBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('sendPaymentLinkBtn');
+    const msg = document.getElementById('paymentLinkMsg');
+    btn.disabled = true; btn.textContent = 'Sending…';
+    msg.style.display = 'none';
+    const { data, error } = await sb.functions.invoke('send-payment-link', { body: { commission_id: c.id } });
+    if (error) {
+      console.error(error);
+      msg.style.display = 'block'; msg.style.color = 'var(--err)';
+      msg.textContent = 'Could not send the link — check the function logs.';
+      btn.disabled = false; btn.textContent = 'Send payment link';
+      return;
+    }
+    msg.style.display = 'block'; msg.style.color = 'var(--ok)';
+    msg.textContent = 'Payment link emailed to the client.';
+    btn.textContent = 'Resend payment link';
+    btn.disabled = false;
+    loadCommissions();
+  });
+
+  document.getElementById('saveStatus').addEventListener('click', async () => {
+    const btn = document.getElementById('saveStatus');
+    btn.disabled = true; btn.textContent = 'Saving…';
+    const { error } = await sb.from('commissions').update({
+      status: document.getElementById('statusSelect').value,
+      deposit_paid: document.getElementById('depositChk').checked,
+      balance_paid: document.getElementById('balanceChk').checked,
+      updated_at: new Date().toISOString()
+    }).eq('id', c.id);
+    btn.disabled = false; btn.textContent = 'Save changes';
+    if (!error) { overlay.classList.remove('show'); loadCommissions(); }
+  });
+
+  document.getElementById('uploadBtn').addEventListener('click', async () => {
+    const input = document.getElementById('uploadInput');
+    if (!input.files.length) return;
+    const file = input.files[0];
+    const fileType = document.getElementById('uploadType').value;
+    const path = `${c.id}/${Date.now()}-${file.name}`;
+    const btn = document.getElementById('uploadBtn');
+    btn.disabled = true; btn.textContent = 'Uploading…';
+    const { error: upErr } = await sb.storage.from('commission-files').upload(path, file);
+    if (upErr) { console.error(upErr); btn.disabled = false; btn.textContent = 'Upload'; return; }
+    await sb.from('commission_files').insert({ commission_id: c.id, file_path: path, file_type: fileType, uploaded_by: 'artist' });
+    openPanel({ ...c, commission_files: [...(c.commission_files || []), { file_path: path, file_type: fileType }] });
+    loadCommissions();
+  });
+
+  overlay.classList.add('show');
+}
+
+// initial check
+sb.auth.getSession().then(({ data: { session } }) => {
+  if (session) {
+    document.getElementById('appView').style.display = 'block';
+    renderSidebar();
+    loadCommissions();
+  } else {
+    document.getElementById('authView').style.display = 'block';
+  }
+});
+</script>
+</body>
+</html>
