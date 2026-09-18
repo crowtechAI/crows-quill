@@ -509,7 +509,7 @@
   .contract-scroll h4:first-child { margin-top: 0; }
   .contract-scroll p { max-width: none; margin-bottom: 10px; }
 
-  .sign-field input {
+  input.sign-field {
     background: var(--parchment-bright);
     border: 1px solid var(--parchment-dim);
     color: var(--ink);
@@ -517,6 +517,12 @@
     font-size: 24px;
     font-style: italic;
     font-weight: 600;
+  }
+  input.sign-field::placeholder { color: var(--parchment-muted); opacity: 0.6; }
+  input.sign-field:focus {
+    background: var(--parchment-bright);
+    border-color: var(--gold);
+    box-shadow: 0 0 0 1px var(--gold);
   }
 
   .sign-row {
