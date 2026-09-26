@@ -307,6 +307,56 @@
   select { cursor: pointer; }
   textarea { min-height: 108px; resize: vertical; }
 
+  /* Category / Character-count card selector (matches homepage estimator) */
+  .calc-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+  @media (max-width: 580px) {
+    .calc-options { grid-template-columns: 1fr; }
+  }
+  .calc-option-btn {
+    background: var(--ink-raised);
+    border: 1px solid var(--line);
+    color: var(--text-body);
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 500;
+    min-height: 56px;
+    transition: all var(--dur) var(--ease);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .calc-option-btn:hover {
+    border-color: var(--gold-dim);
+    background: var(--ink-surface);
+    color: var(--parchment);
+  }
+  .calc-option-btn.selected {
+    border-color: var(--gold-bright);
+    background: rgba(201, 160, 95, 0.14);
+    color: var(--parchment);
+    box-shadow: 0 0 0 1px var(--gold-bright) inset;
+  }
+  .calc-option-btn strong {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 17px;
+    font-style: italic;
+    color: var(--parchment);
+    font-weight: 600;
+  }
+  .calc-option-btn span.subtext {
+    font-size: 12px;
+    color: var(--gold-bright);
+    margin-top: 2px;
+  }
+
   /* Chips / Extras */
   .checks {
     display: flex;
@@ -604,10 +654,13 @@
       </svg>
       <span>The Crow's <em>Quill</em></span>
     </a>
-    <a href="/" class="back-home">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-      <span>Back to Overview</span>
-    </a>
+    <div style="display:flex;align-items:center;gap:18px;">
+      <a href="/" class="back-home">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        <span>Back to Overview</span>
+      </a>
+      <a href="/site/track.html" class="back-home">Track Commission</a>
+    </div>
   </div>
 </header>
 
@@ -662,9 +715,16 @@
     </div>
 
     <div class="field">
-      <label for="type">Commission Category *</label>
-      <select id="type"></select>
+      <label id="framingLabel">Commission Category *</label>
+      <div class="calc-options" id="framingOptions" role="radiogroup" aria-labelledby="framingLabel"></div>
     </div>
+
+    <div class="field">
+      <label id="charLabel">Number of Characters</label>
+      <div class="calc-options" id="charOptions" role="radiogroup" aria-labelledby="charLabel"></div>
+    </div>
+
+    <input type="hidden" id="type" value="">
 
     <label id="extrasLabel">Add-on Enhancements &amp; Licensing</label>
     <div class="checks" id="extrasChecks" role="group" aria-labelledby="extrasLabel"></div>
@@ -672,6 +732,23 @@
     <div class="field">
       <label for="brief">Character Physical Lore &amp; Art Brief</label>
       <textarea id="brief" placeholder="Describe character appearance, hair, eye color, mood, wardrobe, weaponry, or link a Pinterest / moodboard."></textarea>
+    </div>
+
+    <div class="field">
+      <label for="refFiles">Upload Reference Images or Documents (optional)</label>
+      <input type="file" id="refFiles" multiple accept="image/*,.pdf,.doc,.docx,.txt">
+      <div id="refFileList" style="font-size:13px;color:var(--parchment-muted);margin-top:8px;"></div>
+    </div>
+
+    <div class="field">
+      <label for="refText">Or Paste Reference Text (optional)</label>
+      <textarea id="refText" placeholder="Character sheets, excerpts, moodboard links, or anything else you'd rather paste than upload as a file."></textarea>
+    </div>
+
+    <!-- Honeypot: hidden from real visitors, only bots fill this in -->
+    <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+      <label for="website">Leave this field blank</label>
+      <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
     </div>
 
     <div class="estimate-box">
@@ -819,8 +896,31 @@ let state = {
   total: 0, 
   deposit: 0, 
   isEstimate: false, 
-  typeLabel: '' 
+  typeLabel: '',
+  framingGroup: null,
+  charCount: 1
 };
+
+// Turn the flat commission_types rows (portrait1, portrait2, half1, ...) into
+// framing groups (portrait, half, full, ...) each with a 1- and 2-character
+// price, so the booking form can show the same card-style picker as the
+// homepage estimator instead of a plain <select>.
+function framingGroups() {
+  const groups = [];
+  const byGroup = {};
+  commissionTypes.forEach(t => {
+    const m = t.id.match(/^(.*?)(\d+)$/);
+    if (!m) return;
+    const [, group, numStr] = m;
+    const num = parseInt(numStr, 10);
+    if (!byGroup[group]) {
+      byGroup[group] = { group, label: t.label.replace(/\s*\u2014\s*\d+\s*characters?$/i, '').trim(), counts: {} };
+      groups.push(byGroup[group]);
+    }
+    byGroup[group].counts[num] = t;
+  });
+  return groups;
+}
 
 function showStep(id) {
   document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
@@ -845,18 +945,31 @@ function showStep(id) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Pre-fill parameters from landing page calculator
+// Pre-fill parameters from landing page calculator. The homepage estimator
+// uses its own simpler keys (portrait/half_body/full_body + a separate
+// background tier), so map those onto this form's framing groups rather
+// than relying on a raw string match against commission_types.
+const HOMEPAGE_TYPE_TO_GROUP = { portrait: 'portrait', half_body: 'half', full_body: 'full' };
+const HOMEPAGE_BG_TO_GROUP = { basic: 'scenebasic', detailed: 'scenedetail' };
+
 function parseUrlParams() {
   const params = new URLSearchParams(window.location.search);
   const typeParam = params.get('type');
+  const bgParam = params.get('bg');
+  const charsParam = parseInt(params.get('chars'), 10);
   const merch = params.get('merch') === 'true';
   const rush = params.get('rush') === 'true';
 
-  if (typeParam && commissionTypes.length) {
-    const matched = commissionTypes.find(t => t.id.toLowerCase().includes(typeParam) || t.label.toLowerCase().includes(typeParam));
-    if (matched) {
-      const typeSelect = document.getElementById('type');
-      if (typeSelect) typeSelect.value = matched.id;
+  if (commissionTypes.length) {
+    const group = (bgParam && HOMEPAGE_BG_TO_GROUP[bgParam]) || (typeParam && HOMEPAGE_TYPE_TO_GROUP[typeParam]);
+    const groups = framingGroups();
+    const matchedGroup = group && groups.find(g => g.group === group);
+    if (matchedGroup) {
+      state.framingGroup = group;
+      const counts = Object.keys(matchedGroup.counts).map(n => parseInt(n, 10));
+      state.charCount = counts.includes(charsParam) ? charsParam : counts[0];
+      renderFramingCards(groups);
+      renderCharCards(groups);
     }
   }
 
@@ -943,10 +1056,74 @@ function renderSlots() {
 }
 
 function renderTypeOptions() {
-  const sel = document.getElementById('type');
-  sel.innerHTML = commissionTypes.map(t =>
-    `<option value="${t.id}" data-price="${t.base_price}" data-est="${t.is_estimate}">${t.label} (from £${t.base_price})</option>`
-  ).join('');
+  const groups = framingGroups();
+  if (!groups.length) return;
+  if (!state.framingGroup || !groups.find(g => g.group === state.framingGroup)) {
+    state.framingGroup = groups[0].group;
+    state.charCount = groups[0].counts[1] ? 1 : Object.keys(groups[0].counts)[0];
+  }
+  renderFramingCards(groups);
+  renderCharCards(groups);
+}
+
+function renderFramingCards(groups) {
+  const wrap = document.getElementById('framingOptions');
+  wrap.innerHTML = '';
+  groups.forEach(g => {
+    const t1 = g.counts[1] || g.counts[Object.keys(g.counts)[0]];
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'calc-option-btn' + (g.group === state.framingGroup ? ' selected' : '');
+    btn.setAttribute('role', 'radio');
+    btn.setAttribute('aria-checked', String(g.group === state.framingGroup));
+    btn.innerHTML = `<strong>${g.label}</strong><span class="subtext">from £${t1.base_price}</span>`;
+    btn.addEventListener('click', () => {
+      state.framingGroup = g.group;
+      const groups2 = framingGroups();
+      if (!groups2.find(x => x.group === g.group).counts[state.charCount]) {
+        state.charCount = parseInt(Object.keys(g.counts)[0], 10);
+      }
+      renderFramingCards(groups2);
+      renderCharCards(groups2);
+      applySelectedType();
+    });
+    wrap.appendChild(btn);
+  });
+}
+
+function renderCharCards(groups) {
+  const wrap = document.getElementById('charOptions');
+  const g = groups.find(x => x.group === state.framingGroup);
+  wrap.innerHTML = '';
+  if (!g) return;
+  const counts = Object.keys(g.counts).map(n => parseInt(n, 10)).sort((a, b) => a - b);
+  const soloPrice = g.counts[counts[0]].base_price;
+  const names = { 1: 'Solo Character', 2: 'Two Characters', 3: 'Three Characters' };
+  counts.forEach(n => {
+    const t = g.counts[n];
+    const delta = t.base_price - soloPrice;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'calc-option-btn' + (n === state.charCount ? ' selected' : '');
+    btn.setAttribute('role', 'radio');
+    btn.setAttribute('aria-checked', String(n === state.charCount));
+    btn.innerHTML = `<strong>${names[n] || n + ' Characters'}</strong><span class="subtext">${delta > 0 ? '+£' + delta : 'from £' + t.base_price}</span>`;
+    btn.addEventListener('click', () => {
+      state.charCount = n;
+      renderCharCards(groups);
+      applySelectedType();
+    });
+    wrap.appendChild(btn);
+  });
+  applySelectedType();
+}
+
+function applySelectedType() {
+  const g = framingGroups().find(x => x.group === state.framingGroup);
+  if (!g) return;
+  const t = g.counts[state.charCount] || g.counts[Object.keys(g.counts)[0]];
+  document.getElementById('type').value = t.id;
+  updateEstimate();
 }
 
 function renderExtras() {
@@ -983,11 +1160,11 @@ function renderExtras() {
 }
 
 function updateEstimate() {
-  const sel = document.getElementById('type');
-  if (!sel.options.length) return;
-  const opt = sel.options[sel.selectedIndex];
-  const base = parseFloat(opt.dataset.price);
-  const isEst = opt.dataset.est === 'true';
+  const typeId = document.getElementById('type').value;
+  const ct = commissionTypes.find(t => t.id === typeId);
+  if (!ct) return;
+  const base = parseFloat(ct.base_price);
+  const isEst = ct.is_estimate === true;
 
   let fixed = 0, pct = 0;
   state.extraIds.forEach(id => {
@@ -1008,6 +1185,28 @@ function updateEstimate() {
 }
 
 document.getElementById('type').addEventListener('change', updateEstimate);
+
+document.getElementById('refFiles').addEventListener('change', () => {
+  const input = document.getElementById('refFiles');
+  const list = document.getElementById('refFileList');
+  const names = Array.from(input.files).map(f => f.name);
+  list.textContent = names.length ? `Selected: ${names.join(', ')}` : '';
+});
+
+async function uploadReferenceMaterial(commissionId) {
+  const filesInput = document.getElementById('refFiles');
+  const files = Array.from(filesInput.files || []);
+  for (const file of files) {
+    const path = `${commissionId}/${Date.now()}-${file.name}`;
+    const { error: upErr } = await sb.storage.from('commission-files').upload(path, file);
+    if (upErr) { console.error('Reference upload failed:', upErr); continue; }
+    await sb.rpc('add_client_file', { p_commission_id: commissionId, p_file_path: path, p_file_type: 'reference' });
+  }
+  const note = document.getElementById('refText').value.trim();
+  if (note) {
+    await sb.rpc('add_client_note', { p_commission_id: commissionId, p_note: note });
+  }
+}
 
 // Step 0 -> Step 1
 document.getElementById('toStep1').addEventListener('click', () => {
@@ -1051,12 +1250,14 @@ document.getElementById('toStep2').addEventListener('click', async () => {
       p_book_title: book || null,
       p_commission_type_id: typeId,
       p_brief: brief || null,
-      p_extra_ids: state.extraIds
+      p_extra_ids: state.extraIds,
+      p_hp: document.getElementById('website').value
     });
 
     if (error) throw error;
 
     state.commissionId = q.commission_id;
+    await uploadReferenceMaterial(q.commission_id);
     state.quoteId = q.quote_id;
     state.total = q.total;
     state.deposit = q.deposit;
