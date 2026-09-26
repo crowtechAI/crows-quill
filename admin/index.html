@@ -89,6 +89,36 @@
   .status-row { display:flex; gap:10px; margin-top:8px; }
   .chk-row { display:flex; align-items:center; gap:8px; font-size:13.5px; margin-top:8px; }
   .loading-msg { color:var(--lilac-dim); padding:30px 0; }
+
+  /* ---- Availability calendar ---- */
+  .cal-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+  .cal-head h2 { font-size:20px; }
+  .cal-nav { display:flex; gap:8px; align-items:center; }
+  .cal-nav button { background:var(--ink-soft); border:1px solid var(--line); color:var(--lilac); width:36px; height:36px; border-radius:4px; cursor:pointer; font-size:16px; }
+  .cal-nav button:hover { border-color:var(--bronze); color:var(--parchment); }
+  .cal-legend { display:flex; gap:16px; font-size:12px; color:var(--lilac-dim); margin-bottom:14px; }
+  .cal-legend span { display:inline-flex; align-items:center; gap:6px; }
+  .cal-dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
+  .cal-dot.open { background:var(--ok); }
+  .cal-dot.full { background:var(--warn); }
+  .cal-dot.closed { background:var(--lilac-dim); }
+  .cal-dot.unset { background:transparent; border:1px solid var(--line); }
+  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; }
+  .cal-dow { text-align:center; font-size:11.5px; color:var(--lilac-dim); padding-bottom:6px; text-transform:uppercase; letter-spacing:.04em; }
+  .cal-day { position:relative; border:1px solid var(--line); border-radius:6px; min-height:74px; padding:8px; cursor:pointer; background:var(--ink-soft); transition:border-color .12s, background .12s; user-select:none; }
+  .cal-day.blank { visibility:hidden; cursor:default; }
+  .cal-day:hover { border-color:var(--bronze); }
+  .cal-day.past { opacity:.35; cursor:not-allowed; }
+  .cal-day .num { font-size:13px; color:var(--lilac); }
+  .cal-day .status-line { font-size:10.5px; margin-top:20px; display:flex; align-items:center; gap:5px; }
+  .cal-day.open { background:rgba(110,143,107,0.14); border-color:rgba(110,143,107,0.3); }
+  .cal-day.full { background:rgba(201,160,95,0.12); border-color:rgba(201,160,95,0.3); }
+  .cal-day.closed { background:rgba(141,133,155,0.08); }
+  .cal-day.in-range { outline:2px solid var(--bronze-bright); outline-offset:-2px; }
+  .cal-actionbar { display:none; align-items:center; gap:12px; background:var(--ink-soft2); border:1px solid var(--line-gold); border-radius:6px; padding:14px 16px; margin-top:16px; flex-wrap:wrap; }
+  .cal-actionbar.show { display:flex; }
+  .cal-actionbar label { margin:0; font-size:12.5px; }
+  .cal-actionbar input[type=number] { width:70px; padding:8px 10px; }
 </style>
 </head>
 <body>
@@ -114,6 +144,7 @@
     <div class="sidebar" id="sidebarTabs"></div>
     <div class="main">
       <div id="listWrap"><p class="loading-msg">Loading commissions…</p></div>
+      <div id="calendarWrap" style="display:none;"></div>
     </div>
   </div>
 </div>
@@ -126,6 +157,7 @@
 const sb = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 let allCommissions = [];
 let activeTab = 'all';
+let activeView = 'commissions'; // 'commissions' | 'calendar'
 
 const TABS = [
   { key:'all', label:'All' },
@@ -166,13 +198,30 @@ sb.auth.onAuthStateChange((_event, session) => {
 function renderSidebar() {
   const wrap = document.getElementById('sidebarTabs');
   wrap.innerHTML = '';
+
+  const calBtn = document.createElement('button');
+  calBtn.className = 'tab' + (activeView === 'calendar' ? ' active' : '');
+  calBtn.textContent = 'Calendar';
+  calBtn.addEventListener('click', () => { activeView = 'calendar'; renderSidebar(); showView('calendar'); });
+  wrap.appendChild(calBtn);
+
+  const divider = document.createElement('div');
+  divider.style.cssText = 'height:1px;background:var(--line);margin:10px 4px 12px;';
+  wrap.appendChild(divider);
+
   TABS.forEach(t => {
     const btn = document.createElement('button');
-    btn.className = 'tab' + (t.key === activeTab ? ' active' : '');
+    btn.className = 'tab' + (activeView === 'commissions' && t.key === activeTab ? ' active' : '');
     btn.innerHTML = `${t.label} <span class="count" id="count-${t.key}"></span>`;
-    btn.addEventListener('click', () => { activeTab = t.key; renderSidebar(); renderList(); });
+    btn.addEventListener('click', () => { activeView = 'commissions'; activeTab = t.key; renderSidebar(); showView('commissions'); renderList(); });
     wrap.appendChild(btn);
   });
+}
+
+function showView(view) {
+  document.getElementById('listWrap').style.display = view === 'commissions' ? 'block' : 'none';
+  document.getElementById('calendarWrap').style.display = view === 'calendar' ? 'block' : 'none';
+  if (view === 'calendar' && !calendarLoadedOnce) { calendarLoadedOnce = true; renderCalendar(); }
 }
 
 // ---------- Load & list ----------
@@ -368,6 +417,182 @@ function openPanel(c) {
   });
 
   overlay.classList.add('show');
+}
+
+// ---------- Availability calendar ----------
+let calendarLoadedOnce = false;
+let calYear, calMonth; // calMonth is 0-indexed
+let slotsByDate = {}; // 'YYYY-MM-DD' -> slot row
+let selRange = { start: null, end: null }; // 'YYYY-MM-DD'
+
+(function initCalDate() {
+  const now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth();
+})();
+
+function isoDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+async function loadSlotsForMonth(year, month) {
+  const first = new Date(year, month, 1);
+  const last = new Date(year, month + 1, 0);
+  const { data, error } = await sb.from('slots').select('*')
+    .gte('slot_date', isoDate(first)).lte('slot_date', isoDate(last));
+  if (error) { console.error(error); return; }
+  slotsByDate = {};
+  (data || []).forEach(s => { slotsByDate[s.slot_date] = s; });
+}
+
+async function renderCalendar() {
+  const wrap = document.getElementById('calendarWrap');
+  wrap.innerHTML = '<p class="loading-msg">Loading calendar…</p>';
+  await loadSlotsForMonth(calYear, calMonth);
+
+  const monthLabel = new Date(calYear, calMonth, 1).toLocaleDateString('en-GB', { month:'long', year:'numeric' });
+  const first = new Date(calYear, calMonth, 1);
+  const startWeekday = first.getDay(); // 0=Sun
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const todayIso = isoDate(new Date());
+
+  let html = `
+    <div class="cal-head">
+      <h2>${monthLabel}</h2>
+      <div class="cal-nav">
+        <button id="calPrev" aria-label="Previous month">‹</button>
+        <button id="calToday">Today</button>
+        <button id="calNext" aria-label="Next month">›</button>
+      </div>
+    </div>
+    <div class="cal-legend">
+      <span><span class="cal-dot open"></span> Open</span>
+      <span><span class="cal-dot full"></span> Full</span>
+      <span><span class="cal-dot closed"></span> Closed</span>
+      <span><span class="cal-dot unset"></span> Not accepting</span>
+    </div>
+    <p class="sub" style="color:var(--lilac-dim);font-size:13px;margin-bottom:14px;">Click a day, or click-drag across a range, then apply availability below.</p>
+    <div class="cal-grid">
+      ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => `<div class="cal-dow">${d}</div>`).join('')}
+  `;
+
+  for (let i = 0; i < startWeekday; i++) html += `<div class="cal-day blank"></div>`;
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateObj = new Date(calYear, calMonth, d);
+    const iso = isoDate(dateObj);
+    const slot = slotsByDate[iso];
+    const statusClass = slot ? slot.status : '';
+    const isPast = iso < todayIso;
+    const remaining = slot ? Math.max(slot.capacity - slot.booked_count, 0) : null;
+    html += `
+      <div class="cal-day ${statusClass} ${isPast ? 'past' : ''}" data-date="${iso}" ${isPast ? '' : 'role="button" tabindex="0"'}>
+        <div class="num">${d}</div>
+        ${slot ? `<div class="status-line"><span class="cal-dot ${statusClass}"></span>${slot.status === 'closed' ? 'Closed' : remaining + ' left'}</div>` : ''}
+      </div>
+    `;
+  }
+
+  html += `</div>
+    <div class="cal-actionbar" id="calActionBar">
+      <strong id="calSelLabel" style="font-size:13px;color:var(--parchment);"></strong>
+      <label>Capacity/day <input type="number" id="calCapacity" min="1" value="1"></label>
+      <button class="btn" id="calApplyOpen">Mark open</button>
+      <button class="btn-ghost" id="calApplyClosed">Mark closed</button>
+      <button class="link-btn" id="calClearSel" style="margin:0;">Cancel</button>
+    </div>
+  `;
+
+  wrap.innerHTML = html;
+
+  document.getElementById('calPrev').addEventListener('click', () => { changeMonth(-1); });
+  document.getElementById('calNext').addEventListener('click', () => { changeMonth(1); });
+  document.getElementById('calToday').addEventListener('click', () => {
+    const now = new Date(); calYear = now.getFullYear(); calMonth = now.getMonth();
+    clearSelection(); renderCalendar();
+  });
+
+  wrap.querySelectorAll('.cal-day[data-date]').forEach(el => {
+    if (el.classList.contains('past')) return;
+    el.addEventListener('click', () => onDayClick(el.getAttribute('data-date')));
+  });
+
+  document.getElementById('calClearSel').addEventListener('click', () => { clearSelection(); refreshSelectionUI(); });
+  document.getElementById('calApplyOpen').addEventListener('click', () => applyToSelection('open'));
+  document.getElementById('calApplyClosed').addEventListener('click', () => applyToSelection('closed'));
+
+  refreshSelectionUI();
+}
+
+function changeMonth(delta) {
+  calMonth += delta;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  clearSelection();
+  renderCalendar();
+}
+
+function clearSelection() { selRange = { start: null, end: null }; }
+
+function onDayClick(iso) {
+  if (!selRange.start || (selRange.start && selRange.end)) {
+    selRange = { start: iso, end: iso };
+  } else {
+    // second click: set range in correct order
+    if (iso < selRange.start) selRange = { start: iso, end: selRange.start };
+    else selRange = { start: selRange.start, end: iso };
+  }
+  refreshSelectionUI();
+}
+
+function refreshSelectionUI() {
+  const bar = document.getElementById('calActionBar');
+  document.querySelectorAll('.cal-day[data-date]').forEach(el => {
+    const iso = el.getAttribute('data-date');
+    const inRange = selRange.start && iso >= selRange.start && iso <= (selRange.end || selRange.start);
+    el.classList.toggle('in-range', !!inRange);
+  });
+  if (selRange.start) {
+    bar.classList.add('show');
+    const label = selRange.start === selRange.end
+      ? new Date(selRange.start).toLocaleDateString('en-GB', { day:'numeric', month:'short' })
+      : `${new Date(selRange.start).toLocaleDateString('en-GB', { day:'numeric', month:'short' })} – ${new Date(selRange.end).toLocaleDateString('en-GB', { day:'numeric', month:'short' })}`;
+    document.getElementById('calSelLabel').textContent = label;
+  } else {
+    bar.classList.remove('show');
+  }
+}
+
+async function applyToSelection(action) {
+  if (!selRange.start) return;
+  const capacity = Math.max(1, parseInt(document.getElementById('calCapacity').value, 10) || 1);
+  const dates = [];
+  let cur = new Date(selRange.start);
+  const end = new Date(selRange.end);
+  while (cur <= end) { dates.push(isoDate(cur)); cur.setDate(cur.getDate() + 1); }
+
+  const btn = action === 'open' ? document.getElementById('calApplyOpen') : document.getElementById('calApplyClosed');
+  btn.disabled = true; const origText = btn.textContent; btn.textContent = 'Saving…';
+
+  for (const iso of dates) {
+    const existing = slotsByDate[iso];
+    if (action === 'open') {
+      if (existing) {
+        await sb.from('slots').update({ status: 'open', capacity }).eq('id', existing.id);
+      } else {
+        await sb.from('slots').insert({ slot_date: iso, capacity, booked_count: 0, status: 'open' });
+      }
+    } else {
+      if (existing) {
+        await sb.from('slots').update({ status: 'closed' }).eq('id', existing.id);
+      }
+      // no row + closed = already not accepting, nothing to do
+    }
+  }
+
+  btn.disabled = false; btn.textContent = origText;
+  clearSelection();
+  renderCalendar();
 }
 
 // initial check
