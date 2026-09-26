@@ -1,4 +1,4 @@
--- Hollow & Ember: core schema
+-- The Crow's Quill: core schema
 create extension if not exists "pgcrypto";
 
 create table if not exists commission_types (

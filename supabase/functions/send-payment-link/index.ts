@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
         price_data: {
           currency: "gbp",
           unit_amount: Math.round(amount * 100),
-          product_data: { name: `Hollow & Ember — ${label}` },
+          product_data: { name: `The Crow's Quill — ${label}` },
         },
         quantity: 1,
       }],
@@ -57,9 +57,9 @@ Deno.serve(async (req) => {
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          from: Deno.env.get("EMAIL_FROM") ?? "studio@hollowandember.com",
+          from: Deno.env.get("EMAIL_FROM") ?? "studio@crowsquill.art",
           to: c.client.email,
-          subject: `Hollow & Ember — ${label} link`,
+          subject: `The Crow's Quill — ${label} link`,
           html: `<p>Hi ${c.client.name},</p><p>Here's your secure ${label.toLowerCase()} link: <a href="${session.url}">${session.url}</a></p>`,
         }),
       });

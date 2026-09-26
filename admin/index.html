@@ -102,7 +102,6 @@
     <div class="field"><label for="authPass">Password</label><input type="password" id="authPass"></div>
     <button class="btn" id="authSubmit" style="width:100%;">Sign in</button>
     <p class="auth-err" id="authErr"></p>
-    <button class="link-btn" id="authToggle">First time here? Create your studio account</button>
   </div>
 </div>
 
@@ -127,7 +126,6 @@
 const sb = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 let allCommissions = [];
 let activeTab = 'all';
-let isSignup = false;
 
 const TABS = [
   { key:'all', label:'All' },
@@ -140,26 +138,14 @@ const TABS = [
 ];
 
 // ---------- Auth ----------
-document.getElementById('authToggle').addEventListener('click', () => {
-  isSignup = !isSignup;
-  document.getElementById('authSubmit').textContent = isSignup ? 'Create account' : 'Sign in';
-  document.getElementById('authSub').textContent = isSignup
-    ? 'Create the studio account. Only do this once.'
-    : "Studio access for The Crow's Quill.";
-  document.getElementById('authToggle').textContent = isSignup
-    ? 'Already have an account? Sign in'
-    : 'First time here? Create your studio account';
-});
-
 document.getElementById('authSubmit').addEventListener('click', async () => {
   const email = document.getElementById('authEmail').value.trim();
   const password = document.getElementById('authPass').value;
   const errEl = document.getElementById('authErr');
   errEl.style.display = 'none';
-  const fn = isSignup ? sb.auth.signUp({ email, password }) : sb.auth.signInWithPassword({ email, password });
-  const { error } = await fn;
+  errEl.style.color = 'var(--err)';
+  const { error } = await sb.auth.signInWithPassword({ email, password });
   if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
-  if (isSignup) { errEl.style.color = 'var(--ok)'; errEl.textContent = 'Account created — check your email to confirm, then sign in.'; errEl.style.display = 'block'; }
 });
 
 document.getElementById('signOutBtn').addEventListener('click', () => sb.auth.signOut());
@@ -193,7 +179,7 @@ function renderSidebar() {
 async function loadCommissions() {
   const { data, error } = await sb
     .from('commissions')
-    .select('*, client:clients(*), slot:slots(*), quotes(*), contracts(*), commission_files(*)')
+    .select('*, client:clients(*), slot:slots(*), quotes(*), contracts(*), commission_files(*), commission_notes(*)')
     .order('created_at', { ascending: false });
   if (error) { document.getElementById('listWrap').innerHTML = '<p class="empty">Could not load commissions.</p>'; console.error(error); return; }
   allCommissions = data || [];
@@ -304,6 +290,13 @@ function openPanel(c) {
       <div class="kv"><span>Signed by</span><span>${contract.signature_name}</span></div>
       <div class="kv"><span>Signed on</span><span>${new Date(contract.signed_at).toLocaleDateString('en-GB')}</span></div>
     </div>` : ''}
+
+    <div class="panel-section">
+      <h3>Client Notes</h3>
+      <div id="noteList">
+        ${(c.commission_notes || []).map(n => `<div class="brief-text" style="margin-top:6px;">${n.note}<div style="color:var(--lilac-dim);font-size:11.5px;margin-top:6px;">${new Date(n.created_at).toLocaleString('en-GB')} — ${n.created_by}</div></div>`).join('') || '<p class="sub" style="color:var(--lilac-dim);">No notes yet.</p>'}
+      </div>
+    </div>
 
     <div class="panel-section">
       <h3>Files</h3>

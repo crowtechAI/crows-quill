@@ -23,6 +23,17 @@ Deno.serve(async (req) => {
     return new Response("Invalid signature", { status: 400 });
   }
 
+  // Idempotency: Stripe retries webhook deliveries, so skip anything we've
+  // already recorded rather than re-applying the update.
+  const { error: dedupeError } = await admin.from("stripe_events").insert({ id: event.id });
+  if (dedupeError) {
+    // Unique-violation means we've already processed this event.
+    return new Response(JSON.stringify({ received: true, duplicate: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
     const commissionId = session.metadata?.commission_id;
