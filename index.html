@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Crow's Quill — Bespoke Character Illustration for Indie Authors</title>
-<meta name="description" content="Evocative character portraits, illuminated scenes, and cover-ready art tailored specifically for dark fantasy and romantasy authors. Instant quotes from £75.">
+<meta name="description" content="Evocative character portraits, illuminated scenes, and cover-ready art tailored specifically for dark fantasy and romantasy authors. Instant quotes from $75.">
 <meta name="theme-color" content="#0e0c15">
 <meta name="color-scheme" content="dark">
 <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
@@ -196,19 +196,18 @@
     filter: drop-shadow(0 0 10px rgba(201, 160, 95, 0.18));
   }
 
-  .nav-menu {
+  .nav-left {
     display: flex;
     align-items: center;
     flex: 1;
-    justify-content: flex-end;
-    gap: 8px;
+    gap: 32px;
     min-width: 0;
   }
   .nav-links {
     display: flex;
     align-items: center;
     gap: 4px;
-    margin-right: 4px;
+    min-width: 0;
   }
   .nav-link {
     font-size: 14px;
@@ -248,14 +247,6 @@
   .nav-link.active::after {
     transform: scaleX(1);
     background: var(--gold-luminous);
-  }
-
-  .nav-divider {
-    width: 1px;
-    height: 24px;
-    background: var(--line-gold);
-    margin: 0 10px;
-    flex-shrink: 0;
   }
 
   .nav-utility {
@@ -1287,7 +1278,8 @@
     .footer-grid { grid-template-columns: 1fr; gap: 32px; }
   }
   @media (max-width: 768px) {
-    .nav-menu { display: none; }
+    .nav-links { display: none; }
+    .nav-utility { display: none; }
     .nav-toggle { display: flex; }
     .calc-options { grid-template-columns: 1fr; }
     .gallery-grid { grid-template-columns: 1fr; }
@@ -1315,11 +1307,11 @@
 <!-- Sticky Header Navigation -->
 <nav class="navbar" role="navigation" aria-label="Main Navigation" id="mainNavbar">
   <div class="wrap">
-    <a class="brand-link" href="#hero" aria-label="The Crow's Quill — home">
-      <img class="brand-logo" src="/images/crows-quill-logo.png" alt="The Crow's Quill" width="391" height="300">
-    </a>
+    <div class="nav-left">
+      <a class="brand-link" href="#hero" aria-label="The Crow's Quill — home">
+        <img class="brand-logo" src="/images/crows-quill-logo.png" alt="The Crow's Quill" width="391" height="300">
+      </a>
 
-    <div class="nav-menu">
       <div class="nav-links">
         <a class="nav-link" href="#gallery" data-section="gallery">Gallery</a>
         <a class="nav-link" href="#calculator" data-section="calculator">Quote Calculator</a>
@@ -1328,23 +1320,21 @@
         <a class="nav-link" href="#licensing" data-section="licensing">Licensing</a>
         <a class="nav-link" href="#faq" data-section="faq">FAQ</a>
       </div>
+    </div>
 
-      <div class="nav-divider" aria-hidden="true"></div>
-
-      <div class="nav-utility">
-        <a href="/site/track.html" class="nav-icon-link" aria-label="Track my commission" title="Track My Commission">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-        </a>
-        <a href="/admin/" class="nav-icon-link" aria-label="Studio login" title="Studio login">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>
-        </a>
-        <a href="/site/" class="nav-cta">
-          <span>Book Commission</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
-          </svg>
-        </a>
-      </div>
+    <div class="nav-utility">
+      <a href="/site/track.html" class="nav-icon-link" aria-label="Track my commission" title="Track My Commission">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      </a>
+      <a href="/admin/" class="nav-icon-link" aria-label="Studio login" title="Studio login">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>
+      </a>
+      <a href="/site/" class="nav-cta">
+        <span>Book Commission</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </a>
     </div>
 
     <button class="nav-toggle" id="navToggle" aria-label="Open Navigation Menu" aria-expanded="false" aria-controls="mobileDrawer">
@@ -1397,7 +1387,7 @@
 
       <div class="hero-buttons">
         <a href="/site/" class="btn-primary">
-          <span>Book a Commission — from £75</span>
+          <span>Book a Commission — from $75</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
         <a href="#calculator" class="btn-ghost">
@@ -1408,7 +1398,7 @@
 
       <div class="hero-badges">
         <div class="hero-badge-item">
-          <strong>From £75</strong>
+          <strong>From $75</strong>
           <span>Character portraits</span>
         </div>
         <div class="hero-badge-item">
@@ -1523,15 +1513,15 @@
           <div class="calc-options" role="radiogroup" aria-label="Character Framing Selection">
             <button type="button" class="calc-option-btn selected" data-type="portrait" data-price="75">
               <strong>Portrait</strong>
-              <span class="subtext">Chest Up · £75</span>
+              <span class="subtext">Chest Up · $75</span>
             </button>
             <button type="button" class="calc-option-btn" data-type="half_body" data-price="95">
               <strong>Half Body</strong>
-              <span class="subtext">Waist Up · £95</span>
+              <span class="subtext">Waist Up · $95</span>
             </button>
             <button type="button" class="calc-option-btn" data-type="full_body" data-price="125">
               <strong>Full Body</strong>
-              <span class="subtext">Head to Toe · £125</span>
+              <span class="subtext">Head to Toe · $125</span>
             </button>
           </div>
         </div>
@@ -1548,11 +1538,11 @@
             </button>
             <button type="button" class="calc-option-btn" data-chars="2" data-extra="70">
               <strong>Two Characters</strong>
-              <span class="subtext">Couple / Rivals · +£70</span>
+              <span class="subtext">Couple / Rivals · +$70</span>
             </button>
             <button type="button" class="calc-option-btn" data-chars="3" data-extra="130">
               <strong>Three Characters</strong>
-              <span class="subtext">Party / Trio · +£130</span>
+              <span class="subtext">Party / Trio · +$130</span>
             </button>
           </div>
         </div>
@@ -1569,11 +1559,11 @@
             </button>
             <button type="button" class="calc-option-btn" data-bg="basic" data-price="80">
               <strong>Illustrated Scene</strong>
-              <span class="subtext">Chamber / Forest · +£80</span>
+              <span class="subtext">Chamber / Forest · +$80</span>
             </button>
             <button type="button" class="calc-option-btn" data-bg="detailed" data-price="130">
               <strong>Elaborate Realm</strong>
-              <span class="subtext">Gothic Architecture · +£130</span>
+              <span class="subtext">Gothic Architecture · +$130</span>
             </button>
           </div>
         </div>
@@ -1589,7 +1579,7 @@
                 <div class="calc-checkbox-custom">&checkmark;</div>
                 <span>Familiar / Raven / Small Companion</span>
               </div>
-              <div class="calc-checkbox-price">+£25</div>
+              <div class="calc-checkbox-price">+$25</div>
             </div>
 
             <div class="calc-checkbox-item" data-id="merch" data-rate="0.50" tabindex="0" role="checkbox" aria-checked="false">
@@ -1615,29 +1605,29 @@
       <aside class="receipt-box" aria-label="Itemized Quote Breakdown">
         <div class="receipt-title">
           <span>Itemized Quote</span>
-          <span>GBP (£)</span>
+          <span>USD ($)</span>
         </div>
 
         <div class="receipt-rows" id="receiptRows">
           <div class="receipt-row">
             <span id="receiptBaseName">Portrait (1 Character)</span>
-            <span id="receiptBasePrice">£75</span>
+            <span id="receiptBasePrice">$75</span>
           </div>
           <div class="receipt-row" id="receiptBgRow" style="display: none;">
             <span id="receiptBgName">Illustrated Scene</span>
-            <span id="receiptBgPrice">+£80</span>
+            <span id="receiptBgPrice">+$80</span>
           </div>
           <div class="receipt-row" id="receiptFamiliarRow" style="display: none;">
             <span>Familiar / Companion</span>
-            <span>+£25</span>
+            <span>+$25</span>
           </div>
           <div class="receipt-row" id="receiptMerchRow" style="display: none;">
             <span>Commercial Merch Rights</span>
-            <span id="receiptMerchPrice">+£0</span>
+            <span id="receiptMerchPrice">+$0</span>
           </div>
           <div class="receipt-row" id="receiptRushRow" style="display: none;">
             <span>Priority Rush Delivery</span>
-            <span id="receiptRushPrice">+£0</span>
+            <span id="receiptRushPrice">+$0</span>
           </div>
         </div>
 
@@ -1645,11 +1635,11 @@
 
         <div class="receipt-total">
           <div class="receipt-total-label">Estimated Total</div>
-          <div class="receipt-total-val" id="receiptTotalVal">£75</div>
+          <div class="receipt-total-val" id="receiptTotalVal">$75</div>
         </div>
 
         <p class="receipt-deposit-note">
-          &bull; 50% deposit (£<span id="receiptDepositVal">37.50</span>) secures your production slot.<br>
+          &bull; 50% deposit ($<span id="receiptDepositVal">37.50</span>) secures your production slot.<br>
           &bull; 2 revision rounds included at sketch stage.<br>
           &bull; High-res 300 DPI deliverables upon final payment.
         </p>
@@ -1715,7 +1705,7 @@
             <p class="gallery-desc">Shadow magic portrait with metallic gold illumination on dark velvet robes.</p>
           </div>
           <div class="gallery-footer">
-            <span class="gallery-price">From £75</span>
+            <span class="gallery-price">From $75</span>
             <a href="/site/" class="gallery-link">Commission &rarr;</a>
           </div>
         </div>
@@ -1750,7 +1740,7 @@
             <p class="gallery-desc">High-tension romantasy couple framed against a moonlit stained glass balustrade.</p>
           </div>
           <div class="gallery-footer">
-            <span class="gallery-price">From £195</span>
+            <span class="gallery-price">From $195</span>
             <a href="/site/" class="gallery-link">Commission &rarr;</a>
           </div>
         </div>
@@ -1782,7 +1772,7 @@
             <p class="gallery-desc">Full atmospheric environment featuring cold starlight and dramatic architectural perspective.</p>
           </div>
           <div class="gallery-footer">
-            <span class="gallery-price">From £225</span>
+            <span class="gallery-price">From $225</span>
             <a href="/site/" class="gallery-link">Commission &rarr;</a>
           </div>
         </div>
@@ -1808,7 +1798,7 @@
       <div class="price-card">
         <h3 class="price-card-title">Character Portrait</h3>
         <p class="price-card-sub">Ideal for chapter openers, character cards &amp; social teasers.</p>
-        <div class="price-card-amount">£75 <span>/ character</span></div>
+        <div class="price-card-amount">$75 <span>/ character</span></div>
 
         <ul class="price-features">
           <li>
@@ -1837,7 +1827,7 @@
         <div class="price-ribbon">Most Popular</div>
         <h3 class="price-card-title">Full Body / Duo</h3>
         <p class="price-card-sub">Perfect for major book reveals, special editions &amp; dust jackets.</p>
-        <div class="price-card-amount">£125 <span>/ solo (£195 duo)</span></div>
+        <div class="price-card-amount">$125 <span>/ solo ($195 duo)</span></div>
 
         <ul class="price-features">
           <li>
@@ -1865,7 +1855,7 @@
       <div class="price-card">
         <h3 class="price-card-title">Illustrated Scene</h3>
         <p class="price-card-sub">Immersive storytelling moments with full environmental depth.</p>
-        <div class="price-card-amount">£225 <span>/ starting</span></div>
+        <div class="price-card-amount">$225 <span>/ starting</span></div>
 
         <ul class="price-features">
           <li>
@@ -2254,13 +2244,13 @@ REMOVE_END -->
 
     // Update Receipt Breakdown
     document.getElementById('receiptBaseName').textContent = `${calcState.framingName} (${calcState.charCount} Char${calcState.charCount > 1 ? 's' : ''})`;
-    document.getElementById('receiptBasePrice').textContent = `£${calcState.framingPrice + calcState.charExtra}`;
+    document.getElementById('receiptBasePrice').textContent = `$${calcState.framingPrice + calcState.charExtra}`;
 
     const bgRow = document.getElementById('receiptBgRow');
     if (calcState.bgPrice > 0) {
       bgRow.style.display = 'flex';
       document.getElementById('receiptBgName').textContent = calcState.bgName;
-      document.getElementById('receiptBgPrice').textContent = `+£${calcState.bgPrice}`;
+      document.getElementById('receiptBgPrice').textContent = `+$${calcState.bgPrice}`;
     } else {
       bgRow.style.display = 'none';
     }
@@ -2271,7 +2261,7 @@ REMOVE_END -->
     const merchRow = document.getElementById('receiptMerchRow');
     if (calcState.hasMerch) {
       merchRow.style.display = 'flex';
-      document.getElementById('receiptMerchPrice').textContent = `+£${merchFee}`;
+      document.getElementById('receiptMerchPrice').textContent = `+$${merchFee}`;
     } else {
       merchRow.style.display = 'none';
     }
@@ -2279,12 +2269,12 @@ REMOVE_END -->
     const rushRow = document.getElementById('receiptRushRow');
     if (calcState.hasRush) {
       rushRow.style.display = 'flex';
-      document.getElementById('receiptRushPrice').textContent = `+£${rushFee}`;
+      document.getElementById('receiptRushPrice').textContent = `+$${rushFee}`;
     } else {
       rushRow.style.display = 'none';
     }
 
-    document.getElementById('receiptTotalVal').textContent = `£${total}`;
+    document.getElementById('receiptTotalVal').textContent = `$${total}`;
     document.getElementById('receiptDepositVal').textContent = deposit;
 
     // Update CTA button link with parameters for booking flow

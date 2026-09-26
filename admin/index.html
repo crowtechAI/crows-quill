@@ -30,8 +30,8 @@
   body { background:var(--ink); color:var(--lilac); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; }
   h1,h2,h3 { font-family:'Cormorant Garamond',serif; color:var(--parchment); font-weight:600; }
   .topbar { display:flex; align-items:center; justify-content:space-between; padding:18px 28px; border-bottom:1px solid var(--line); background:rgba(14,12,21,0.9); }
-  .brand { font-family:'Cormorant Garamond',serif; font-size:21px; color:var(--parchment); font-weight:600; }
-  .brand em { color:var(--bronze-bright); font-style:italic; }
+  .brand { display:flex; align-items:center; gap:10px; font-family:'Cormorant Garamond',serif; font-size:15px; color:var(--parchment); font-weight:600; letter-spacing:0.04em; text-transform:uppercase; }
+  .brand img { height:34px; width:auto; display:block; filter: drop-shadow(0 0 10px rgba(201, 160, 95, 0.18)); }
   #signOutBtn { background:transparent; border:1px solid var(--line); color:var(--lilac-dim); padding:8px 16px; border-radius:4px; font-size:13px; cursor:pointer; transition:all 0.2s; }
   #signOutBtn:hover { border-color:var(--bronze-bright); color:var(--parchment); }
 
@@ -94,7 +94,7 @@
 <body>
 
 <div id="authView" style="display:none;">
-  <div class="topbar"><div class="brand">The Crow's <em>Quill</em> Studio</div></div>
+  <div class="topbar"><div class="brand"><img src="/images/crows-quill-logo.png" alt="The Crow's Quill" width="391" height="300"><span>Studio</span></div></div>
   <div class="auth-wrap">
     <h2>Sign in</h2>
     <p class="sub" id="authSub">Studio access for The Crow's Quill.</p>
@@ -107,7 +107,7 @@
 
 <div id="appView" style="display:none;">
   <div class="topbar">
-    <div class="brand">The Crow's <em>Quill</em> Studio</div>
+    <div class="brand"><img src="/images/crows-quill-logo.png" alt="The Crow's Quill" width="391" height="300"><span>Studio</span></div>
     <button id="signOutBtn">Sign out</button>
   </div>
   <div class="layout">
@@ -219,7 +219,7 @@ function renderList() {
       <div><div class="name">${name}</div><div class="sub">${c.client?.book_title || ''}</div></div>
       <div class="sub">${labelFromType(c.commission_type)}</div>
       <div class="sub">${slotDate}</div>
-      <div class="sub">£${c.total_price ?? '—'}</div>
+      <div class="sub">$${c.total_price ?? '—'}</div>
       <div><span class="badge ${c.status}">${c.status.replace('_',' ')}</span></div>
     `;
     row.addEventListener('click', () => openPanel(c));
@@ -256,8 +256,8 @@ function openPanel(c) {
       <div class="kv"><span>Type</span><span>${labelFromType(c.commission_type)}</span></div>
       <div class="kv"><span>Book / series</span><span>${c.client?.book_title || '—'}</span></div>
       <div class="kv"><span>Slot</span><span>${slotDate}</span></div>
-      <div class="kv"><span>Total</span><span>£${c.total_price ?? '—'}</span></div>
-      <div class="kv"><span>Deposit</span><span>£${c.deposit_amount ?? '—'}</span></div>
+      <div class="kv"><span>Total</span><span>$${c.total_price ?? '—'}</span></div>
+      <div class="kv"><span>Deposit</span><span>$${c.deposit_amount ?? '—'}</span></div>
       ${c.brief ? `<div class="brief-text">${c.brief}</div>` : ''}
     </div>
 

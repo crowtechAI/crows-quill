@@ -114,20 +114,12 @@
   .brand-logo {
     display: flex;
     align-items: center;
-    gap: 10px;
-    color: var(--parchment);
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 21px;
-    font-weight: 600;
   }
-  .brand-logo svg {
-    width: 24px;
-    height: 24px;
-    color: var(--gold-bright);
-  }
-  .brand-logo em {
-    color: var(--gold-bright);
-    font-style: italic;
+  .brand-logo img {
+    height: 42px;
+    width: auto;
+    display: block;
+    filter: drop-shadow(0 0 10px rgba(201, 160, 95, 0.18));
   }
   .back-home {
     font-size: 13.5px;
@@ -647,12 +639,8 @@
 <!-- Header Bar -->
 <header class="nav-header">
   <div class="nav-wrap">
-    <a href="/" class="brand-logo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-        <path d="M4 20c4-1 7-4 8-8 1-4 4-7 8-8-1 4-4 7-8 8-4 1-7 4-8 8Z"/>
-        <path d="M11 13 5 19"/>
-      </svg>
-      <span>The Crow's <em>Quill</em></span>
+    <a href="/" class="brand-logo" aria-label="The Crow's Quill — home">
+      <img src="/images/crows-quill-logo.png" alt="The Crow's Quill" width="391" height="300">
     </a>
     <div style="display:flex;align-items:center;gap:18px;">
       <a href="/" class="back-home">
@@ -753,7 +741,7 @@
 
     <div class="estimate-box">
       <div style="font-size: 13px; color: var(--parchment-muted); margin-bottom: 6px;" id="estimateLabel">Estimated Base Quote</div>
-      <div class="amt" id="estimateAmt">£0</div>
+      <div class="amt" id="estimateAmt">$0</div>
       <div style="font-size: 13px; color: var(--parchment-muted); margin-top: 8px;" id="estimateSub"></div>
     </div>
 
@@ -778,11 +766,11 @@
       <div id="quoteLines"></div>
       <div class="quote-line total">
         <span>Total Project Cost</span>
-        <span id="qTotal">£0</span>
+        <span id="qTotal">$0</span>
       </div>
       <div class="quote-line" style="font-weight: 600; color: #5c2438;">
         <span>50% Deposit to Lock Slot</span>
-        <span id="qDeposit">£0</span>
+        <span id="qDeposit">$0</span>
       </div>
       <p class="quote-note" id="qNote"></p>
     </div>
@@ -1076,7 +1064,7 @@ function renderFramingCards(groups) {
     btn.className = 'calc-option-btn' + (g.group === state.framingGroup ? ' selected' : '');
     btn.setAttribute('role', 'radio');
     btn.setAttribute('aria-checked', String(g.group === state.framingGroup));
-    btn.innerHTML = `<strong>${g.label}</strong><span class="subtext">from £${t1.base_price}</span>`;
+    btn.innerHTML = `<strong>${g.label}</strong><span class="subtext">from $${t1.base_price}</span>`;
     btn.addEventListener('click', () => {
       state.framingGroup = g.group;
       const groups2 = framingGroups();
@@ -1107,7 +1095,7 @@ function renderCharCards(groups) {
     btn.className = 'calc-option-btn' + (n === state.charCount ? ' selected' : '');
     btn.setAttribute('role', 'radio');
     btn.setAttribute('aria-checked', String(n === state.charCount));
-    btn.innerHTML = `<strong>${names[n] || n + ' Characters'}</strong><span class="subtext">${delta > 0 ? '+£' + delta : 'from £' + t.base_price}</span>`;
+    btn.innerHTML = `<strong>${names[n] || n + ' Characters'}</strong><span class="subtext">${delta > 0 ? '+$' + delta : 'from $' + t.base_price}</span>`;
     btn.addEventListener('click', () => {
       state.charCount = n;
       renderCharCards(groups);
@@ -1136,7 +1124,7 @@ function renderExtras() {
     chip.setAttribute('role', 'button');
     chip.setAttribute('tabindex', '0');
     chip.setAttribute('aria-pressed', 'false');
-    const label = e.is_percentage ? `${e.label} (+${e.percentage}%)` : `${e.label} (£${e.price})`;
+    const label = e.is_percentage ? `${e.label} (+${e.percentage}%)` : `${e.label} ($${e.price})`;
     chip.textContent = label;
     
     const toggle = () => {
@@ -1179,9 +1167,9 @@ function updateEstimate() {
   const total = Math.round(sub * (1 + pct / 100));
   const deposit = Math.round(total * 0.5);
 
-  document.getElementById('estimateAmt').textContent = `£${total}`;
+  document.getElementById('estimateAmt').textContent = `$${total}`;
   document.getElementById('estimateLabel').textContent = isEst ? 'Estimated Starting Quote' : 'Calculated Quote';
-  document.getElementById('estimateSub').textContent = `50% deposit (£${deposit}) due upon signing. Final 50% due before delivery.`;
+  document.getElementById('estimateSub').textContent = `50% deposit ($${deposit}) due upon signing. Final 50% due before delivery.`;
 }
 
 document.getElementById('type').addEventListener('change', updateEstimate);
@@ -1267,8 +1255,8 @@ document.getElementById('toStep2').addEventListener('click', async () => {
     state.typeLabel = ct ? ct.label : 'Commission';
 
     document.getElementById('quoteTitle').textContent = `${state.typeLabel} Quote`;
-    document.getElementById('qTotal').textContent = `£${q.total}`;
-    document.getElementById('qDeposit').textContent = `£${q.deposit}`;
+    document.getElementById('qTotal').textContent = `$${q.total}`;
+    document.getElementById('qDeposit').textContent = `$${q.deposit}`;
     document.getElementById('qNote').textContent = q.is_estimate
       ? 'This is a preliminary scope estimate. Your final rate will be verified against your brief prior to deposit.'
       : 'This is a fixed-price commission quote valid for 48 hours.';
@@ -1278,7 +1266,7 @@ document.getElementById('toStep2').addEventListener('click', async () => {
     (q.items || []).forEach(item => {
       const row = document.createElement('div');
       row.className = 'quote-line';
-      row.innerHTML = `<span>${item.label}</span><span>£${item.amount}</span>`;
+      row.innerHTML = `<span>${item.label}</span><span>$${item.amount}</span>`;
       lines.appendChild(row);
     });
 
@@ -1295,7 +1283,7 @@ document.getElementById('toStep2').addEventListener('click', async () => {
 
 // Step 2 Accept -> Step 3
 document.getElementById('acceptBtn').addEventListener('click', () => {
-  document.getElementById('cSummary').textContent = `${state.typeLabel} commission scheduled for the week of ${state.slotLabel}. Total fee: £${state.total} (50% deposit of £${state.deposit} due to confirm).`;
+  document.getElementById('cSummary').textContent = `${state.typeLabel} commission scheduled for the week of ${state.slotLabel}. Total fee: $${state.total} (50% deposit of $${state.deposit} due to confirm).`;
   showStep('step3');
 });
 
@@ -1336,8 +1324,8 @@ signBtn.addEventListener('click', async () => {
 
     document.getElementById('sSlot').textContent = `Week of ${state.slotLabel}`;
     document.getElementById('sType').textContent = state.typeLabel;
-    document.getElementById('sTotal').textContent = `£${state.total}`;
-    document.getElementById('sDeposit').textContent = `£${state.deposit}`;
+    document.getElementById('sTotal').textContent = `$${state.total}`;
+    document.getElementById('sDeposit').textContent = `$${state.deposit}`;
 
     showStep('step4');
   } catch (e) {
