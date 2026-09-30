@@ -8,3 +8,6 @@ __pycache__/
 design-system/
 
 supabase/.temp/
+
+# local AI tooling (not for the public repo)
+.claude/
