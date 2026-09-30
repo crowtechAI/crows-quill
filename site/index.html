@@ -1231,7 +1231,7 @@ document.getElementById('toStep2').addEventListener('click', async () => {
   btn.textContent = 'Computing quote…';
 
   try {
-    const { data: q, error } = await sb.rpc('create_commission_and_quote', {
+    const { data: quoteData, error } = await sb.rpc('create_commission_and_quote', {
       p_slot_id: state.slotId,
       p_author_name: name,
       p_author_email: email,
@@ -1243,6 +1243,10 @@ document.getElementById('toStep2').addEventListener('click', async () => {
     });
 
     if (error) throw error;
+
+    // PostgREST returns a table-returning function as an array of rows
+    const q = Array.isArray(quoteData) ? quoteData[0] : quoteData;
+    if (!q) throw new Error('No quote was returned. Please try again.');
 
     state.commissionId = q.commission_id;
     await uploadReferenceMaterial(q.commission_id);
