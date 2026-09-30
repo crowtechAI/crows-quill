@@ -537,6 +537,14 @@
     height: auto;
     display: block;
   }
+  .hero-visual .hero-portrait {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+  }
 
   /* Ornamental Flourish Divider */
   .divider-wrap {
@@ -910,6 +918,22 @@
     color: var(--parchment-muted);
     line-height: 1.5;
     margin-bottom: 16px;
+  }
+  .gallery-view {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 16px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--gold-bright);
+    border-bottom: 1px solid var(--line-gold);
+    padding-bottom: 2px;
+    transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+  }
+  .gallery-view:hover {
+    color: var(--gold-luminous);
+    border-color: var(--gold-luminous);
   }
   .gallery-footer {
     display: flex;
@@ -1420,64 +1444,7 @@
 
     <div class="hero-visual" id="main-content">
       <div class="hero-visual-inner">
-        <!-- SVG Illuminated Illustration of Crow, Inkwell, and Quill -->
-        <svg viewBox="0 0 500 520" role="img" aria-labelledby="heroSvgTitle heroSvgDesc">
-          <title id="heroSvgTitle">The Crow's Quill Emblem Illustration</title>
-          <desc id="heroSvgDesc">An atmospheric nocturnal artwork featuring a raven perched beside an antique inkwell, quill pen, and illuminated parchment scroll bathed in gilded moonlight.</desc>
-          <defs>
-            <linearGradient id="bgWash" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#241c30"/>
-              <stop offset="50%" stop-color="#14111f"/>
-              <stop offset="100%" stop-color="#0e0c15"/>
-            </linearGradient>
-            <radialGradient id="haloGlow" cx="50%" cy="40%" r="55%">
-              <stop offset="0%" stop-color="#c9a05f" stop-opacity="0.32"/>
-              <stop offset="60%" stop-color="#5c2438" stop-opacity="0.15"/>
-              <stop offset="100%" stop-color="#0e0c15" stop-opacity="0"/>
-            </radialGradient>
-            <linearGradient id="goldStroke" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#8a6b3c"/>
-              <stop offset="50%" stop-color="#dfba77"/>
-              <stop offset="100%" stop-color="#8a6b3c"/>
-            </linearGradient>
-          </defs>
-
-          <!-- Backdrop -->
-          <rect width="500" height="520" fill="url(#bgWash)"/>
-          <circle cx="250" cy="210" r="190" fill="url(#haloGlow)"/>
-
-          <!-- Intricate Celestial Halo Rings -->
-          <circle cx="250" cy="210" r="170" fill="none" stroke="url(#goldStroke)" stroke-width="1.2" stroke-dasharray="4 6" opacity="0.6"/>
-          <circle cx="250" cy="210" r="150" fill="none" stroke="url(#goldStroke)" stroke-width="1" opacity="0.3"/>
-
-          <!-- Parchment Scroll -->
-          <path d="M80 400 L250 370 L420 400 L420 445 L250 420 L80 445 Z" fill="#f4efe6" opacity="0.95"/>
-          <path d="M100 412 L240 394 M100 426 L220 410" stroke="#8d859b" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
-          <path d="M260 394 L400 412 M280 410 L400 426" stroke="#8d859b" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
-
-          <!-- Inkwell -->
-          <path d="M130 330 Q135 290 170 290 Q205 290 210 330 L200 360 Q198 370 185 370 H155 Q142 370 140 360 Z" fill="#1b1626" stroke="#b08a4e" stroke-width="2"/>
-          <ellipse cx="170" cy="290" rx="36" ry="10" fill="#3c1524" stroke="#c9a05f" stroke-width="1.5"/>
-          <ellipse cx="170" cy="290" rx="25" ry="6" fill="#0e0c15"/>
-
-          <!-- Quill Feather & Nib -->
-          <path d="M175 285 C230 230, 280 140, 325 80" stroke="#cdc4d9" stroke-width="2.5" fill="none" opacity="0.9"/>
-          <path d="M325 80 C336 94, 340 115, 320 124 C336 118, 344 100, 332 75 Z" fill="#dfba77"/>
-          <!-- Trailing ink flourish -->
-          <path d="M175 295 C140 335, 160 370, 160 400" stroke="#c9a05f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-
-          <!-- Raven / Crow Silhouette with Fine Plumage Details -->
-          <g transform="translate(280, 150)">
-            <path d="M0 70 C-8 35 4 4 38 -8 C26 -18 24 -34 34 -48 C50 -41 57 -24 55 -10 C75 -12 94 4 96 30 C98 54 84 75 59 82 C75 89 84 103 80 116 L-5 116 C-12 98 -5 82 9 75 C-3 77 -7 72 0 70 Z" fill="#0c0a12" stroke="#241d33" stroke-width="1.5"/>
-            <!-- Beak -->
-            <path d="M34 -48 L8 -55 L29 -36 Z" fill="#0c0a12" stroke="#8a6b3c" stroke-width="0.8"/>
-            <!-- Golden Eye -->
-            <circle cx="52" cy="7" r="4" fill="#dfba77"/>
-            <circle cx="52" cy="7" r="1.5" fill="#0e0c15"/>
-            <!-- Claws -->
-            <path d="M45 112 L40 128 M64 112 L66 128" stroke="#8a6b3c" stroke-width="4.5" stroke-linecap="round"/>
-          </g>
-        </svg>
+        <img class="hero-portrait" src="/images/hero-portrait.jpg" alt="Portrait artwork by The Crow's Quill" width="1392" height="1800" decoding="async" fetchpriority="high">
       </div>
     </div>
   </div>
@@ -1685,8 +1652,7 @@
         </div>
         <div class="gallery-content">
           <div>
-            <h3 class="gallery-title">Thorn-Scarred &amp; Unbowed</h3>
-            <p class="gallery-desc">Confident, clean lineart with a glare that does half the storytelling. Thorn-vine and starburst scars trace every muscle, and the water splashes feel alive.</p>
+            <a class="gallery-view" href="/images/gallery/portrait.jpg" target="_blank" rel="noopener">View full size &nearr;</a>
           </div>
           <div class="gallery-footer">
             <span class="gallery-price">From $75</span>
@@ -1703,8 +1669,7 @@
         </div>
         <div class="gallery-content">
           <div>
-            <h3 class="gallery-title">Blade at His Throat, Smirk on His Face</h3>
-            <p class="gallery-desc">Enemies-to-lovers tension in warm, painterly light. Her steady hand, his easy grin and the torn linen say everything your chapter needs, with no dialogue required.</p>
+            <a class="gallery-view" href="/images/gallery/romantasy-couple.jpg?v=2" target="_blank" rel="noopener">View full size &nearr;</a>
           </div>
           <div class="gallery-footer">
             <span class="gallery-price">From $195</span>
@@ -1721,8 +1686,7 @@
         </div>
         <div class="gallery-content">
           <div>
-            <h3 class="gallery-title">The Midwinter Bargain</h3>
-            <p class="gallery-desc">A lantern-lit Yule market, a crowded street behind and one very reluctant elf at the fudge stall. Full environments, glowing light and a living background, all built around your characters.</p>
+            <a class="gallery-view" href="/images/gallery/illustrated-scene.jpg" target="_blank" rel="noopener">View full size &nearr;</a>
           </div>
           <div class="gallery-footer">
             <span class="gallery-price">From $225</span>
