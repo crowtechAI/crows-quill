@@ -48,6 +48,7 @@
   .btn:disabled { opacity:.4; cursor:not-allowed; }
   .btn-ghost { background:transparent; border:1px solid var(--line); color:var(--lilac); padding:11px 18px; min-height:44px; border-radius:4px; font-size:14px; cursor:pointer; transition:border-color .15s, color .15s; }
   .btn-ghost:hover { border-color:var(--bronze-bright); color:var(--parchment); }
+  .btn-ghost:disabled { opacity:.45; cursor:not-allowed; }
   .link-btn { background:none; border:none; color:var(--bronze-bright); font-size:13px; cursor:pointer; padding:0; margin-top:14px; min-height:44px; }
   .auth-err { color:var(--err); font-size:13px; margin-top:10px; display:none; }
 
@@ -72,23 +73,46 @@
   .badge.declined, .badge.cancelled { background:rgba(193,127,143,0.15); color:var(--err); }
   .empty { color:var(--lilac-dim); font-size:14px; padding:40px 0; text-align:center; }
 
-  .overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:flex-start; justify-content:flex-end; z-index:100; }
+  /* ---------- Slide-out panel ---------- */
+  .overlay { position:fixed; inset:0; background:rgba(8,6,14,.66); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); display:none; align-items:flex-start; justify-content:flex-end; z-index:100; }
   .overlay.show { display:flex; }
-  .panel { width:min(480px, 100vw); height:100vh; background:var(--ink-soft); border-left:1px solid var(--line); padding:26px; overflow-y:auto; }
-  .panel h2 { font-size:22px; margin-bottom:2px; }
-  .panel .close { float:right; background:none; border:none; color:var(--lilac-dim); font-size:20px; cursor:pointer; width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:50%; transition:background .15s, color .15s; }
+  .panel { position:relative; width:min(500px, 100vw); height:100vh; background:linear-gradient(180deg, var(--ink-soft), var(--ink)); border-left:1px solid var(--line-gold); box-shadow:-24px 0 60px rgba(0,0,0,.55); padding:32px 28px 56px; overflow-y:auto; animation:panelIn .22s ease-out; }
+  @keyframes panelIn { from { transform:translateX(28px); opacity:0; } to { transform:none; opacity:1; } }
+  @media (prefers-reduced-motion: reduce) { .panel { animation:none; } }
+  .panel h2 { font-size:30px; line-height:1.1; margin-bottom:4px; padding-right:48px; }
+  .panel .panel-email { color:var(--lilac-dim); font-size:13px; word-break:break-all; }
+  .panel .panel-head { display:flex; align-items:center; gap:10px; margin-top:12px; }
+  .panel .close { position:absolute; top:18px; right:18px; background:none; border:none; color:var(--lilac-dim); font-size:22px; cursor:pointer; width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:50%; transition:background .15s, color .15s; }
   .panel .close:hover { background:var(--ink-soft2); color:var(--parchment); }
   .list-row:focus-visible { outline:2px solid var(--bronze-bright); outline-offset:2px; }
   .sidebar .tab:focus-visible { outline:2px solid var(--bronze-bright); outline-offset:-2px; }
-  .panel-section { margin-top:22px; padding-top:18px; border-top:1px solid var(--line); }
-  .panel-section h3 { font-size:14px; color:var(--bronze-bright); margin-bottom:10px; }
-  .kv { display:flex; justify-content:space-between; font-size:13.5px; padding:6px 0; color:var(--lilac); }
-  .kv span:first-child { color:var(--lilac-dim); }
-  .brief-text { font-size:13.5px; color:var(--lilac); background:var(--ink); padding:12px; border-radius:5px; margin-top:6px; }
-  .file-row { display:flex; justify-content:space-between; align-items:center; font-size:13px; padding:6px 0; border-bottom:1px solid var(--line); }
-  .status-row { display:flex; gap:10px; margin-top:8px; }
-  .chk-row { display:flex; align-items:center; gap:8px; font-size:13.5px; margin-top:8px; }
+  .panel-section { margin-top:16px; padding:18px; background:rgba(255,255,255,.02); border:1px solid var(--line); border-radius:8px; }
+  .panel-section h3 { font-family:'Cinzel',serif; font-size:11.5px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--bronze-bright); margin-bottom:12px; }
+  .kv { display:flex; justify-content:space-between; gap:16px; font-size:13.5px; padding:9px 0; border-bottom:1px solid var(--line); color:var(--lilac); }
+  .kv:last-of-type { border-bottom:none; }
+  .kv span:first-child { color:var(--lilac-dim); flex-shrink:0; }
+  .kv span:last-child { color:var(--parchment); text-align:right; }
+  .brief-text { font-size:13.5px; line-height:1.6; color:var(--lilac); background:var(--ink); border:1px solid var(--line); padding:12px 14px; border-radius:6px; margin-top:10px; white-space:pre-wrap; word-break:break-word; }
+  .file-row { display:flex; justify-content:space-between; align-items:center; font-size:13px; padding:8px 0; border-bottom:1px solid var(--line); word-break:break-all; }
+  .file-row:last-child { border-bottom:none; }
+  .status-row { display:flex; gap:10px; margin-top:12px; }
+  .status-row .btn, .status-row .btn-ghost { flex:1; }
+  .chk-row { display:flex; align-items:center; gap:10px; font-size:13.5px; margin-top:12px; }
+  .chk-row input[type=checkbox] { width:18px; height:18px; flex-shrink:0; accent-color:var(--bronze); }
+  .chk-row label { margin:0; color:var(--lilac); font-size:13.5px; }
+  #sendPaymentLinkBtn { border-color:var(--line-gold); color:var(--bronze-bright); }
+  #sendPaymentLinkBtn:hover:not(:disabled) { background:rgba(201,160,95,.1); color:var(--parchment); }
+  #saveStatus { width:100%; margin-top:6px; }
+  .panel-msg { font-size:13px; line-height:1.5; margin-top:10px; padding:10px 12px; border-radius:6px; border:1px solid var(--line); display:none; word-break:break-word; }
+  .panel-msg.ok { display:block; color:#9fc79b; background:rgba(110,143,107,.12); border-color:rgba(110,143,107,.3); }
+  .panel-msg.warn { display:block; color:var(--bronze-bright); background:rgba(201,160,95,.1); border-color:var(--line-gold); }
+  .panel-msg.err { display:block; color:var(--err); background:rgba(217,143,160,.1); border-color:rgba(217,143,160,.3); }
+  .panel-msg .copy-row { display:flex; gap:8px; margin-top:8px; }
+  .panel-msg .copy-row input { font-size:12px; padding:8px 10px; }
+  .panel-msg .copy-row button { flex-shrink:0; min-height:0; padding:8px 14px; }
+  .link-status { color:var(--lilac-dim); font-size:12.5px; margin-top:10px; }
   .loading-msg { color:var(--lilac-dim); padding:30px 0; }
+  @media (max-width:600px) { .panel { padding:26px 16px 48px; } .panel-section { padding:16px 14px; } }
 </style>
 </head>
 <body>
@@ -137,6 +161,11 @@ const TABS = [
   { key:'declined', label:'Declined / cancelled' },
 ];
 
+// Client-supplied text (names, briefs, notes) is rendered via innerHTML, so escape it.
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
+}
+
 // ---------- Auth ----------
 document.getElementById('authSubmit').addEventListener('click', async () => {
   const email = document.getElementById('authEmail').value.trim();
@@ -170,7 +199,7 @@ function renderSidebar() {
     const btn = document.createElement('button');
     btn.className = 'tab' + (t.key === activeTab ? ' active' : '');
     btn.innerHTML = `${t.label} <span class="count" id="count-${t.key}"></span>`;
-    btn.addEventListener('click', () => { activeTab = t.key; renderSidebar(); renderList(); });
+    btn.addEventListener('click', () => { activeTab = t.key; renderSidebar(); updateCounts(); renderList(); });
     wrap.appendChild(btn);
   });
 }
@@ -216,11 +245,11 @@ function renderList() {
     row.setAttribute('aria-label', `Open commission for ${name}, status ${c.status.replace('_',' ')}`);
     const slotDate = c.slot ? new Date(c.slot.slot_date).toLocaleDateString('en-GB', { day:'numeric', month:'short' }) : '—';
     row.innerHTML = `
-      <div><div class="name">${name}</div><div class="sub">${c.client?.book_title || ''}</div></div>
-      <div class="sub">${labelFromType(c.commission_type)}</div>
+      <div><div class="name">${esc(name)}</div><div class="sub">${esc(c.client?.book_title || '')}</div></div>
+      <div class="sub">${esc(labelFromType(c.commission_type))}</div>
       <div class="sub">${slotDate}</div>
-      <div class="sub">£${c.total_price ?? '—'}</div>
-      <div><span class="badge ${c.status}">${c.status.replace('_',' ')}</span></div>
+      <div class="sub">£${esc(c.total_price ?? '—')}</div>
+      <div><span class="badge ${esc(c.status)}">${esc(c.status.replace('_',' '))}</span></div>
     `;
     row.addEventListener('click', () => openPanel(c));
     row.addEventListener('keydown', (e) => {
@@ -238,6 +267,12 @@ function labelFromType(id) {
   return map[id] || id;
 }
 
+function paymentBtnLabel(c) {
+  if (c.balance_paid) return 'Fully paid';
+  const kind = c.deposit_paid ? 'balance' : 'deposit';
+  return `${c.deposit_link_sent_at && !c.deposit_paid ? 'Resend' : 'Send'} ${kind} link`;
+}
+
 // ---------- Detail panel ----------
 function openPanel(c) {
   const overlay = document.getElementById('overlay');
@@ -248,62 +283,63 @@ function openPanel(c) {
 
   panel.innerHTML = `
     <button class="close" id="closePanel" aria-label="Close panel">×</button>
-    <h2>${c.client?.name || 'Unknown'}</h2>
-    <div class="sub" style="color:var(--lilac-dim);font-size:13px;">${c.client?.email || ''}</div>
+    <h2>${esc(c.client?.name || 'Unknown')}</h2>
+    <div class="panel-email">${esc(c.client?.email || '')}</div>
+    <div class="panel-head"><span class="badge ${esc(c.status)}">${esc(c.status.replace('_',' '))}</span></div>
 
     <div class="panel-section">
       <h3>Commission</h3>
-      <div class="kv"><span>Type</span><span>${labelFromType(c.commission_type)}</span></div>
-      <div class="kv"><span>Book / series</span><span>${c.client?.book_title || '—'}</span></div>
+      <div class="kv"><span>Type</span><span>${esc(labelFromType(c.commission_type))}</span></div>
+      <div class="kv"><span>Book / series</span><span>${esc(c.client?.book_title || '—')}</span></div>
       <div class="kv"><span>Slot</span><span>${slotDate}</span></div>
-      <div class="kv"><span>Total</span><span>£${c.total_price ?? '—'}</span></div>
-      <div class="kv"><span>Deposit</span><span>£${c.deposit_amount ?? '—'}</span></div>
-      ${c.brief ? `<div class="brief-text">${c.brief}</div>` : ''}
+      <div class="kv"><span>Total</span><span>£${esc(c.total_price ?? '—')}</span></div>
+      <div class="kv"><span>Deposit</span><span>£${esc(c.deposit_amount ?? '—')}</span></div>
+      ${c.brief ? `<div class="brief-text">${esc(c.brief)}</div>` : ''}
     </div>
 
     <div class="panel-section">
-      <h3>Status</h3>
-      <select id="statusSelect">
+      <h3>Status &amp; payment</h3>
+      <select id="statusSelect" aria-label="Status">
         ${['enquiry','quoted','accepted','declined','in_progress','delivered','cancelled'].map(s =>
           `<option value="${s}" ${s === c.status ? 'selected' : ''}>${s.replace('_',' ')}</option>`).join('')}
       </select>
-      <div class="chk-row"><input type="checkbox" id="depositChk" ${c.deposit_paid ? 'checked' : ''}><label for="depositChk" style="margin:0;">Deposit paid</label></div>
-      <div class="chk-row"><input type="checkbox" id="balanceChk" ${c.balance_paid ? 'checked' : ''}><label for="balanceChk" style="margin:0;">Balance paid</label></div>
+      <div class="chk-row"><input type="checkbox" id="depositChk" ${c.deposit_paid ? 'checked' : ''}><label for="depositChk">Deposit paid</label></div>
+      <div class="chk-row"><input type="checkbox" id="balanceChk" ${c.balance_paid ? 'checked' : ''}><label for="balanceChk">Balance paid</label></div>
       <div class="status-row">
-        <button class="btn-ghost" id="sendPaymentLinkBtn" ${c.balance_paid ? 'disabled' : ''}>${c.balance_paid ? 'Fully paid' : (!c.deposit_paid ? (c.deposit_link_sent_at ? 'Resend deposit link' : 'Send deposit link') : (c.deposit_link_sent_at ? 'Resend balance link' : 'Send balance link'))}</button>
+        <button class="btn-ghost" id="sendPaymentLinkBtn" ${c.balance_paid ? 'disabled' : ''}>${paymentBtnLabel(c)}</button>
       </div>
-      ${c.deposit_link_sent_at && !c.deposit_paid ? `<div class="sub" style="color:var(--lilac-dim);margin-top:6px;">Link sent ${new Date(c.deposit_link_sent_at).toLocaleString('en-GB')} — awaiting payment.</div>` : ''}
-      <p class="sub" id="paymentLinkMsg" style="margin-top:6px;display:none;"></p>
+      ${c.deposit_link_sent_at && !c.deposit_paid ? `<div class="link-status">Link sent ${new Date(c.deposit_link_sent_at).toLocaleString('en-GB')} — awaiting payment.</div>` : ''}
+      <div class="panel-msg" id="paymentLinkMsg" role="status" aria-live="polite"></div>
       <div class="status-row"><button class="btn" id="saveStatus">Save changes</button></div>
     </div>
 
     ${quote ? `
     <div class="panel-section">
       <h3>Quote</h3>
-      <div class="kv"><span>Response</span><span>${quote.response}</span></div>
+      <div class="kv"><span>Response</span><span>${esc(quote.response)}</span></div>
       <div class="kv"><span>Sent</span><span>${new Date(quote.sent_at).toLocaleDateString('en-GB')}</span></div>
     </div>` : ''}
 
     ${contract ? `
     <div class="panel-section">
       <h3>Contract</h3>
-      <div class="kv"><span>Signed by</span><span>${contract.signature_name}</span></div>
+      <div class="kv"><span>Signed by</span><span>${esc(contract.signature_name)}</span></div>
       <div class="kv"><span>Signed on</span><span>${new Date(contract.signed_at).toLocaleDateString('en-GB')}</span></div>
     </div>` : ''}
 
     <div class="panel-section">
-      <h3>Client Notes</h3>
+      <h3>Client notes</h3>
       <div id="noteList">
-        ${(c.commission_notes || []).map(n => `<div class="brief-text" style="margin-top:6px;">${n.note}<div style="color:var(--lilac-dim);font-size:11.5px;margin-top:6px;">${new Date(n.created_at).toLocaleString('en-GB')} — ${n.created_by}</div></div>`).join('') || '<p class="sub" style="color:var(--lilac-dim);">No notes yet.</p>'}
+        ${(c.commission_notes || []).map(n => `<div class="brief-text">${esc(n.note)}<div style="color:var(--lilac-dim);font-size:11.5px;margin-top:6px;">${new Date(n.created_at).toLocaleString('en-GB')} — ${esc(n.created_by)}</div></div>`).join('') || '<p class="link-status" style="margin-top:0;">No notes yet.</p>'}
       </div>
     </div>
 
     <div class="panel-section">
       <h3>Files</h3>
       <div id="fileList">
-        ${(c.commission_files || []).map(f => `<div class="file-row"><span>${f.file_path.split('/').pop()} <span style="color:var(--lilac-dim);">(${f.file_type})</span></span></div>`).join('') || '<p class="sub" style="color:var(--lilac-dim);">No files yet.</p>'}
+        ${(c.commission_files || []).map(f => `<div class="file-row"><span>${esc(f.file_path.split('/').pop())} <span style="color:var(--lilac-dim);">(${esc(f.file_type)})</span></span></div>`).join('') || '<p class="link-status" style="margin-top:0;">No files yet.</p>'}
       </div>
-      <div style="margin-top:12px;">
+      <div style="margin-top:14px;">
         <label for="uploadType">Add a file</label>
         <select id="uploadType" style="margin-bottom:8px;">
           <option value="reference">Reference</option>
@@ -318,24 +354,46 @@ function openPanel(c) {
   `;
 
   document.getElementById('closePanel').addEventListener('click', () => overlay.classList.remove('show'));
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.classList.remove('show'); };
 
   document.getElementById('sendPaymentLinkBtn').addEventListener('click', async () => {
     const btn = document.getElementById('sendPaymentLinkBtn');
     const msg = document.getElementById('paymentLinkMsg');
+    const label = paymentBtnLabel(c);
     btn.disabled = true; btn.textContent = 'Sending…';
-    msg.style.display = 'none';
+    msg.className = 'panel-msg'; msg.innerHTML = '';
+
+    const showErr = (text) => {
+      msg.className = 'panel-msg err';
+      msg.textContent = `Could not send the link — ${text}`;
+      btn.disabled = false; btn.textContent = label;
+    };
+
     const { data, error } = await sb.functions.invoke('send-payment-link', { body: { commission_id: c.id } });
     if (error) {
       console.error(error);
-      msg.style.display = 'block'; msg.style.color = 'var(--err)';
-      msg.textContent = 'Could not send the link — check the function logs.';
-      btn.disabled = false; btn.textContent = 'Send payment link';
+      let detail = error.message;
+      try { const body = await error.context.json(); if (body?.error) detail = body.error; } catch (_) {}
+      showErr(detail);
       return;
     }
-    msg.style.display = 'block'; msg.style.color = 'var(--ok)';
-    msg.textContent = 'Payment link emailed to the client.';
-    btn.textContent = 'Resend payment link';
+    if (data?.error) { showErr(data.error); return; }
+
+    if (data?.emailed) {
+      msg.className = 'panel-msg ok';
+      msg.textContent = 'Payment link emailed to the client.';
+    } else {
+      // Link was created but the email didn't go out — let the artist copy it.
+      msg.className = 'panel-msg warn';
+      msg.innerHTML = `Link created but not emailed${data?.emailError ? ' (' + esc(data.emailError) + ')' : ''}. Copy it and send it yourself:
+        <div class="copy-row"><input type="text" readonly id="payLinkUrl" value="${esc(data?.url || '')}"><button class="btn-ghost" id="copyPayLink">Copy</button></div>`;
+      document.getElementById('copyPayLink').addEventListener('click', async (e) => {
+        try { await navigator.clipboard.writeText(data.url); e.target.textContent = 'Copied'; }
+        catch (_) { document.getElementById('payLinkUrl').select(); }
+      });
+    }
     btn.disabled = false;
+    btn.textContent = c.deposit_paid ? 'Resend balance link' : 'Resend deposit link';
     loadCommissions();
   });
 
