@@ -865,14 +865,16 @@
     overflow: hidden;
     background: #14101d;
   }
-  .gallery-img-wrap svg {
+  .gallery-img-wrap svg,
+  .gallery-img-wrap img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
     transition: transform 0.5s var(--ease-out);
   }
-  .gallery-card:hover .gallery-img-wrap svg {
+  .gallery-card:hover .gallery-img-wrap svg,
+  .gallery-card:hover .gallery-img-wrap img {
     transform: scale(1.04);
   }
   .gallery-tag {
@@ -1679,25 +1681,7 @@
       <article class="gallery-card" data-category="portrait">
         <div class="gallery-img-wrap">
           <span class="gallery-tag">Character Portrait</span>
-          <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Dark fantasy mage portrait">
-            <defs>
-              <linearGradient id="pGrad1" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#3b1728"/>
-                <stop offset="60%" stop-color="#191526"/>
-                <stop offset="100%" stop-color="#0e0c15"/>
-              </linearGradient>
-              <radialGradient id="pLight1" cx="60%" cy="40%" r="50%">
-                <stop offset="0%" stop-color="#dfba77" stop-opacity="0.4"/>
-                <stop offset="100%" stop-color="#3b1728" stop-opacity="0"/>
-              </radialGradient>
-            </defs>
-            <rect width="400" height="300" fill="url(#pGrad1)"/>
-            <circle cx="240" cy="120" r="100" fill="url(#pLight1)"/>
-            <!-- Stylized Figure -->
-            <path d="M160 280 C160 210, 200 180, 200 150 C185 150, 180 120, 200 100 C215 85, 235 90, 240 110 C250 140, 230 160, 230 180 C270 200, 280 240, 280 280 Z" fill="#14101e" stroke="#c9a05f" stroke-width="1.2"/>
-            <path d="M190 120 Q200 145 220 125" stroke="#dfba77" stroke-width="2" fill="none"/>
-            <circle cx="215" cy="110" r="2.5" fill="#dfba77"/>
-          </svg>
+          <img src="/images/gallery/portrait.jpg" alt="Dark fantasy character portrait by The Crows Quill" loading="lazy" decoding="async" style="object-position: center 20%;">
         </div>
         <div class="gallery-content">
           <div>
@@ -1715,24 +1699,7 @@
       <article class="gallery-card" data-category="romantasy">
         <div class="gallery-img-wrap">
           <span class="gallery-tag">Romantasy Duo</span>
-          <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Enemies to lovers romantasy illustration">
-            <defs>
-              <linearGradient id="pGrad2" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#5c2438"/>
-                <stop offset="70%" stop-color="#1b1628"/>
-                <stop offset="100%" stop-color="#0e0c15"/>
-              </linearGradient>
-              <radialGradient id="pLight2" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="#dfba77" stop-opacity="0.35"/>
-                <stop offset="100%" stop-color="#5c2438" stop-opacity="0"/>
-              </radialGradient>
-            </defs>
-            <rect width="400" height="300" fill="url(#pGrad2)"/>
-            <circle cx="200" cy="140" r="110" fill="url(#pLight2)"/>
-            <!-- Dual Silhouette -->
-            <path d="M120 290 C120 220, 160 170, 180 150 C165 140, 160 115, 175 100 C190 90, 205 105, 200 125 C210 160, 190 200, 210 290 Z" fill="#130e1c" stroke="#b08a4e" stroke-width="1.2"/>
-            <path d="M280 290 C280 220, 240 170, 220 150 C235 140, 240 115, 225 100 C210 90, 195 105, 200 125 C190 160, 210 200, 190 290 Z" fill="#201529" stroke="#dfba77" stroke-width="1.2"/>
-          </svg>
+          <img src="/images/gallery/romantasy-couple.jpg" alt="Romantasy couple illustration by The Crows Quill" loading="lazy" decoding="async" style="object-position: center 30%;">
         </div>
         <div class="gallery-content">
           <div>
@@ -1750,21 +1717,7 @@
       <article class="gallery-card" data-category="scenes">
         <div class="gallery-img-wrap">
           <span class="gallery-tag">Illustrated Scene</span>
-          <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Gothic cathedral courtyard scene">
-            <defs>
-              <linearGradient id="pGrad3" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#18233c"/>
-                <stop offset="50%" stop-color="#161324"/>
-                <stop offset="100%" stop-color="#0e0c15"/>
-              </linearGradient>
-            </defs>
-            <rect width="400" height="300" fill="url(#pGrad3)"/>
-            <!-- Arches & Moonlight -->
-            <path d="M60 300 L60 140 Q100 80 140 140 L140 300 Z" fill="#14101e" stroke="#8a6b3c" stroke-width="1.2"/>
-            <path d="M260 300 L260 140 Q300 80 340 140 L340 300 Z" fill="#14101e" stroke="#8a6b3c" stroke-width="1.2"/>
-            <circle cx="200" cy="90" r="45" fill="#f4efe6" opacity="0.85"/>
-            <path d="M180 300 C180 240, 220 240, 220 300 Z" fill="#0b0910"/>
-          </svg>
+          <img src="/images/gallery/illustrated-scene.jpg" alt="Illustrated gothic scene by The Crows Quill" loading="lazy" decoding="async" style="object-position: center;">
         </div>
         <div class="gallery-content">
           <div>
