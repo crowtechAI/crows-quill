@@ -21,9 +21,21 @@ create table if not exists testimonials (
 
 alter table testimonials enable row level security;
 
+-- Match whatever access model the database uses: if the stricter
+-- is_studio_admin() helper exists use it, otherwise fall back to "signed-in
+-- user" like the other studio tables (only the artist signs in).
 drop policy if exists "studio full access testimonials" on testimonials;
-create policy "studio full access testimonials" on testimonials for all
-  using (is_studio_admin()) with check (is_studio_admin());
+do $$
+begin
+  if exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+             where n.nspname = 'public' and p.proname = 'is_studio_admin') then
+    execute 'create policy "studio full access testimonials" on testimonials for all
+             using (public.is_studio_admin()) with check (public.is_studio_admin())';
+  else
+    execute 'create policy "studio full access testimonials" on testimonials for all
+             using (auth.role() = ''authenticated'') with check (auth.role() = ''authenticated'')';
+  end if;
+end $$;
 
 create or replace function public.get_testimonial_request(p_token uuid)
 returns table (client_name text, book_title text, already_submitted boolean)
@@ -88,3 +100,6 @@ $$;
 grant execute on function public.get_testimonial_request(uuid) to anon, authenticated;
 grant execute on function public.submit_testimonial(uuid, int, text, text, text) to anon, authenticated;
 grant execute on function public.get_public_testimonials(int) to anon, authenticated;
+
+-- make PostgREST pick up the new table/functions immediately
+notify pgrst, 'reload schema';

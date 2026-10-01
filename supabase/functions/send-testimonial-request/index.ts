@@ -15,18 +15,23 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    // SITE_URL if set, otherwise the origin the admin page is served from.
-    const siteUrl = (Deno.env.get("SITE_URL") ?? req.headers.get("origin") ?? "").replace(/\/$/, "");
-    if (!siteUrl) return json({ error: "SITE_URL is not set and the request had no Origin header" }, 500);
-
     const authHeader = req.headers.get("Authorization") ?? "";
     const asCaller = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_ANON_KEY")!,
       { global: { headers: { Authorization: authHeader } } },
     );
-    const { data: isAdmin } = await asCaller.rpc("is_studio_admin");
-    if (!isAdmin) return json({ error: "Studio admin access required" }, 403);
+    // Must be a signed-in studio user (the anon key alone is not enough).
+    const { data: userData } = await asCaller.auth.getUser();
+    if (!userData?.user) return json({ error: "Sign in to the studio dashboard first" }, 401);
+    // If the stricter is_studio_admin() helper exists, enforce it too.
+    const { data: isAdmin, error: adminErr } = await asCaller.rpc("is_studio_admin");
+    const helperMissing = adminErr && (adminErr.code === "PGRST202" || /could not find the function/i.test(adminErr.message ?? ""));
+    if (!helperMissing && !isAdmin) return json({ error: "Studio admin access required" }, 403);
+
+    // SITE_URL if set, otherwise the origin the admin page is served from.
+    const siteUrl = (Deno.env.get("SITE_URL") ?? req.headers.get("origin") ?? "").replace(/\/$/, "");
+    if (!siteUrl) return json({ error: "SITE_URL is not set and the request had no Origin header" }, 500);
 
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -65,7 +70,7 @@ Deno.serve(async (req) => {
           method: "POST",
           headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
           body: JSON.stringify({
-            from: Deno.env.get("EMAIL_FROM") ?? "studio@crowsquill.art",
+            from: Deno.env.get("EMAIL_FROM") ?? Deno.env.get("FROM_EMAIL") ?? "studio@crowsquill.art",
             to: client.email,
             subject: "How did we do? A quick testimonial for The Crow's Quill",
             html:
