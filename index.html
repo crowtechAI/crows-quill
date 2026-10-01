@@ -1357,8 +1357,8 @@
 
       <div class="nav-links">
         <a class="nav-link" href="#gallery" data-section="gallery">Gallery</a>
-        <a class="nav-link" href="#calculator" data-section="calculator">Quote Calculator</a>
         <a class="nav-link" href="#pricing" data-section="pricing">Pricing</a>
+        <a class="nav-link" href="#calculator" data-section="calculator">Quote Calculator</a>
         <a class="nav-link" href="#process" data-section="process">Process</a>
         <a class="nav-link" href="#reviews" data-section="reviews" id="navReviews" hidden>Reviews</a>
         <a class="nav-link" href="#licensing" data-section="licensing">Licensing</a>
@@ -1396,8 +1396,8 @@
   <div class="mobile-drawer" id="mobileDrawer" role="region" aria-label="Mobile Navigation">
     <div class="drawer-section-label">Explore</div>
     <a href="#gallery">Gallery</a>
-    <a href="#calculator">Quote Calculator</a>
     <a href="#pricing">Pricing &amp; Tiers</a>
+    <a href="#calculator">Quote Calculator</a>
     <a href="#process">Process</a>
     <a href="#reviews" id="navReviewsMobile" hidden>Reviews</a>
     <a href="#licensing">Licensing</a>
@@ -1477,76 +1477,6 @@
     <div class="divider-line"></div>
   </div>
 </div>
-
-<!-- Interactive Commission Quote Calculator -->
-<section id="calculator">
-  <div class="wrap">
-    <div class="section-header text-center">
-      <div class="section-kicker">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        <span>Get a price</span>
-      </div>
-      <h2 class="section-title">Quote Calculator</h2>
-      <p class="section-subtitle">Pick what you want drawn and see the price straight away, itemized. All prices are in US dollars.</p>
-    </div>
-
-    <div class="estimator-container">
-      <!-- Calculator Controls (built from the live price list) -->
-      <div class="calc-controls">
-        <div class="calc-group">
-          <div class="calc-label"><span>1. What are you commissioning?</span></div>
-          <div class="calc-options" id="calcCategory" role="radiogroup" aria-label="Commission category" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));"></div>
-        </div>
-
-        <div class="calc-group">
-          <div class="calc-label"><span id="calcFramingLabel">2. Size and framing</span></div>
-          <div class="calc-options" id="calcFraming" role="radiogroup" aria-labelledby="calcFramingLabel" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));"></div>
-        </div>
-
-        <div class="calc-group">
-          <div class="calc-label"><span>3. Number of characters</span></div>
-          <div class="calc-options" id="calcChars" role="radiogroup" aria-label="Number of characters" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));"></div>
-          <p class="calc-hint">Need three or more? Add &ldquo;Additional character&rdquo; below for each extra one.</p>
-        </div>
-
-        <div class="calc-group">
-          <div class="calc-label"><span>4. Extras, NSFW and licensing</span></div>
-          <div class="calc-checkboxes" id="calcExtras"></div>
-          <p class="calc-hint">Prices marked &ldquo;from&rdquo; are confirmed against your brief. NSFW art with three or more characters and publishing licences are quoted individually. All characters must be adults (18+).</p>
-        </div>
-      </div>
-
-      <!-- Live Quote Summary Box -->
-      <aside class="receipt-box" aria-label="Itemized Quote Breakdown">
-        <div class="receipt-title">
-          <span>Itemized Quote</span>
-          <span>USD ($)</span>
-        </div>
-
-        <div class="receipt-rows" id="receiptRows"></div>
-
-        <div class="receipt-divider"></div>
-
-        <div class="receipt-total">
-          <div class="receipt-total-label">Estimated Total</div>
-          <div class="receipt-total-val" id="receiptTotalVal">$0</div>
-        </div>
-
-        <p class="receipt-deposit-note">
-          &bull; 50% deposit ($<span id="receiptDepositVal">0</span>) secures your production slot.<br>
-          &bull; 2 revision rounds included at sketch stage.<br>
-          &bull; High-res files delivered once the balance is paid.
-        </p>
-        <p class="receipt-deposit-note" id="receiptEstNote" hidden>This is an estimate. Items marked &ldquo;from&rdquo; are confirmed against your brief before you pay.</p>
-
-        <a href="/site/" id="bookEstimateBtn" class="btn-primary" style="width: 100%; justify-content: center;">
-          <span>Lock In This Scope</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </a>
-      </aside>
-    </div>
-  </div>
-</section>
 
 <!-- Portfolio Gallery Section -->
 <section id="gallery">
@@ -1654,11 +1584,11 @@
           </li>
           <li>
             <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            <span>2 rounds of revisions during sketching</span>
+            <span>2 rounds of changes at sketch stage</span>
           </li>
           <li>
             <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            <span>Author promo licensing included</span>
+            <span>Author promotional licence included</span>
           </li>
         </ul>
 
@@ -1787,6 +1717,76 @@
   </div>
 </section>
 
+<!-- Interactive Commission Quote Calculator -->
+<section id="calculator">
+  <div class="wrap">
+    <div class="section-header text-center">
+      <div class="section-kicker">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <span>Get a price</span>
+      </div>
+      <h2 class="section-title">Quote Calculator</h2>
+      <p class="section-subtitle">Pick what you want drawn and see the price straight away, itemized. All prices are in US dollars.</p>
+    </div>
+
+    <div class="estimator-container">
+      <!-- Calculator Controls (built from the live price list) -->
+      <div class="calc-controls">
+        <div class="calc-group">
+          <div class="calc-label"><span>1. What are you commissioning?</span></div>
+          <div class="calc-options" id="calcCategory" role="radiogroup" aria-label="Commission category" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));"></div>
+        </div>
+
+        <div class="calc-group">
+          <div class="calc-label"><span id="calcFramingLabel">2. Size and framing</span></div>
+          <div class="calc-options" id="calcFraming" role="radiogroup" aria-labelledby="calcFramingLabel" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));"></div>
+        </div>
+
+        <div class="calc-group">
+          <div class="calc-label"><span>3. Number of characters</span></div>
+          <div class="calc-options" id="calcChars" role="radiogroup" aria-label="Number of characters" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));"></div>
+          <p class="calc-hint">Need three or more? Add &ldquo;Additional character&rdquo; below for each extra one.</p>
+        </div>
+
+        <div class="calc-group">
+          <div class="calc-label"><span>4. Extras, NSFW and licensing</span></div>
+          <div class="calc-checkboxes" id="calcExtras"></div>
+          <p class="calc-hint">Prices marked &ldquo;from&rdquo; are confirmed against your brief. NSFW art with three or more characters and publishing licences are quoted individually. All characters must be adults (18+).</p>
+        </div>
+      </div>
+
+      <!-- Live Quote Summary Box -->
+      <aside class="receipt-box" aria-label="Itemized Quote Breakdown">
+        <div class="receipt-title">
+          <span>Itemized Quote</span>
+          <span>USD ($)</span>
+        </div>
+
+        <div class="receipt-rows" id="receiptRows"></div>
+
+        <div class="receipt-divider"></div>
+
+        <div class="receipt-total">
+          <div class="receipt-total-label">Estimated Total</div>
+          <div class="receipt-total-val" id="receiptTotalVal">$0</div>
+        </div>
+
+        <p class="receipt-deposit-note">
+          &bull; 50% deposit ($<span id="receiptDepositVal">0</span>) secures your production slot.<br>
+          &bull; 2 revision rounds included at sketch stage.<br>
+          &bull; High-res files delivered once the balance is paid.
+        </p>
+        <p class="receipt-deposit-note" id="receiptEstNote" hidden>This is an estimate. Items marked &ldquo;from&rdquo; are confirmed against your brief before you pay.</p>
+
+        <a href="/site/" id="bookEstimateBtn" class="btn-primary" style="width: 100%; justify-content: center;">
+          <span>Lock In This Scope</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </aside>
+    </div>
+  </div>
+</section>
+
 <!-- 3-Step Process -->
 <section id="process">
   <div class="wrap">
@@ -1804,7 +1804,7 @@
         <div class="process-number">01</div>
         <h3 class="process-title">Choose Your Slot &amp; Brief</h3>
         <p class="process-desc">
-          Pick an open week on the calendar, paste in your character sheet and any references, and pay a 50% deposit to hold the slot.
+          Pick an open week, fill in your brief (characters, references, intended use), review your itemized quote, sign the agreement online and pay the 50% booking payment so work can begin.
         </p>
       </div>
 
@@ -1856,26 +1856,37 @@
 
     <div class="licensing-grid">
       <div class="licensing-card">
-        <div class="licensing-badge">Included Free</div>
-        <h3 class="licensing-title">Author Promotional</h3>
+        <div class="licensing-badge">Included With All Art</div>
+        <h3 class="licensing-title">Author Promotional Licence</h3>
         <p class="licensing-text">
-          Included with every commission. Use the art to promote your book, characters or series: social media, your website and newsletters, paid advertising, retailer graphics, character reveals, launch and preorder graphics, events and displays, banners, and free bookmarks, postcards, art cards, preorder gifts and reader swag. You can crop, resize and add text where needed.
+          Standard author commissions include permission to use the finished artwork to promote your book, characters or series: social media, your website and newsletters, paid advertising, retailer graphics, character reveals, launch and preorder graphics, events and displays, banners, and free bookmarks, postcards, art cards, preorder gifts, reader swag and other free promotional items. The artwork may be cropped, resized and have text added where reasonably required for permitted promotional use.
         </p>
       </div>
 
       <div class="licensing-card">
         <div class="licensing-badge">+50% Add-on</div>
-        <h3 class="licensing-title">Commercial Merchandise</h3>
+        <h3 class="licensing-title">Commercial Merchandise Licence</h3>
         <p class="licensing-text">
-          A flat fee of +50% of the original artwork cost lets you put the art on items you sell, such as postcards, bookmarks and art prints. It doesn’t include resale rights for the artwork itself, and copyright stays with the artist.
+          A flat commercial fee of +50% of the original artwork cost allows you to use the commissioned artwork on promotional items for sale, for example postcards, bookmarks and art prints. This licence does not include resale rights for the artwork itself, and copyright for the art remains with the artist.
         </p>
       </div>
 
       <div class="licensing-card">
         <div class="licensing-badge">Custom Quote</div>
-        <h3 class="licensing-title">Full Publishing Rights</h3>
+        <h3 class="licensing-title">Publishing Licence</h3>
         <p class="licensing-text">
-          Using the art as part of the book itself is quoted separately: covers, dust jackets, endpapers, interior illustrations and special-edition components. Production specifications are agreed as part of the quote.
+          Using the art as part of the book itself is quoted separately: covers, dust jackets, endpapers, interior illustrations and special-edition components. Publishing rights and any required production specifications are agreed as part of the commission quote.
+        </p>
+      </div>
+
+      <div class="licensing-card" style="grid-column: 1 / -1;">
+        <div class="licensing-badge">In Your Agreement</div>
+        <h3 class="licensing-title">Using Your Artwork</h3>
+        <p class="licensing-text">
+          Your usage licence begins once the commission has been paid for in full. Copyright in the finished artwork remains with the artist, and you keep all rights you hold in your own characters, books, series and world. The artist will not sell, license or otherwise commercially exploit artwork depicting your original characters without your permission, and may show the finished piece in their portfolio and on social media after delivery (or after any reveal date agreed with you).
+        </p>
+        <p class="licensing-text" style="margin-top: 12px;">
+          You may crop, resize and add text where your licence allows, but you may not repaint, redraw, retouch, recolour or otherwise alter the artwork without the artist&rsquo;s written permission, and it may not be used to train generative AI systems or be uploaded to generative AI services to create replacement or derivative artwork. Where credit is reasonably practical, the preferred credit is &ldquo;Art by The Crow&rsquo;s Quill&rdquo;. Credit is appreciated when the artwork itself is being showcased, but isn&rsquo;t required on every advertisement, graphic or item.
         </p>
       </div>
     </div>
@@ -1947,6 +1958,26 @@
 
       <details class="faq-card">
         <summary class="faq-question">
+          <span>Who owns the artwork, and what files do I receive?</span>
+          <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="faq-answer">
+          Copyright in the finished artwork stays with the artist, and you keep all rights in your own characters, books and series. You receive the finished artwork in high resolution, plus any additional versions agreed as part of your commission. Sketches, layered files, working files and source files aren&rsquo;t included unless separately agreed. Your usage licence begins once the commission is paid in full.
+        </div>
+      </details>
+
+      <details class="faq-card">
+        <summary class="faq-question">
+          <span>Can I edit the artwork or use it with AI tools?</span>
+          <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="faq-answer">
+          You can crop, resize and add text where your licence allows. Repainting, redrawing, retouching or recolouring the artwork needs the artist&rsquo;s written permission. The artwork can&rsquo;t be used to train generative AI systems or uploaded to generative AI services to create replacement or derivative artwork.
+        </div>
+      </details>
+
+      <details class="faq-card">
+        <summary class="faq-question">
           <span>Can you keep my art private until my cover reveal?</span>
           <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
         </summary>
@@ -1997,10 +2028,11 @@
         <div class="footer-heading">Navigation</div>
         <ul class="footer-links">
           <li><a href="#gallery">Portfolio Gallery</a></li>
-          <li><a href="#calculator">Quote Calculator</a></li>
           <li><a href="#pricing">Commission Tiers</a></li>
+          <li><a href="#calculator">Quote Calculator</a></li>
           <li><a href="#process">3-Step Process</a></li>
-          <li><a href="#licensing">Author Licensing</a></li>
+          <li><a href="#licensing">Licensing</a></li>
+          <li><a href="#faq">FAQ</a></li>
         </ul>
       </div>
 
