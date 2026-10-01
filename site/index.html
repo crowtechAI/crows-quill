@@ -625,6 +625,9 @@
     text-align: center;
   }
 
+  .hint { font-size: 12.5px; color: var(--parchment-muted); margin: -12px 0 24px; line-height: 1.5; max-width: none; }
+  .section-label { font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.1em; color: var(--gold-bright); margin: 34px 0 18px; padding-top: 22px; border-top: 1px solid var(--line); text-transform: uppercase; }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.001s !important;
@@ -666,7 +669,7 @@
   <section class="step active" id="step0" aria-labelledby="step0Title">
     <div class="kicker">Milestone 1 of 4</div>
     <h2 id="step0Title">Choose Your Production Week</h2>
-    <p class="lead">Select an open calendar slot. Reserving your week guarantees direct delivery within your author deadline.</p>
+    <p class="lead">Select an open calendar slot to reserve your production week. Delivery dates are estimates, and yours is set out in your agreement.</p>
     
     <div class="slot-grid" id="slotGrid">
       <p class="loading-msg">Querying studio availability…</p>
@@ -702,6 +705,45 @@
       </div>
     </div>
 
+    <div class="row">
+      <div>
+        <label for="authorBiz">Author / Business Name (if different)</label>
+        <input type="text" id="authorBiz" placeholder="Pen name or imprint">
+      </div>
+      <div>
+        <label for="social">Social Media / Website</label>
+        <input type="text" id="social" placeholder="@handle or link">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="series">Series</label>
+        <input type="text" id="series" placeholder="If the book is part of one">
+      </div>
+      <div>
+        <label for="genre">Genre</label>
+        <input type="text" id="genre" placeholder="e.g. dark romantasy">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="published">Is the book currently published?</label>
+        <select id="published">
+          <option value="">Select&hellip;</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+      </div>
+      <div>
+        <label for="releaseDate">Expected release / reveal date (if not published)</label>
+        <input type="text" id="releaseDate" placeholder="e.g. March 2027">
+      </div>
+    </div>
+
+    <div class="section-label">What would you like commissioned?</div>
+
     <div class="field">
       <label id="framingLabel">Commission Category *</label>
       <div class="calc-options" id="framingOptions" role="radiogroup" aria-labelledby="framingLabel"></div>
@@ -716,11 +758,110 @@
 
     <label id="extrasLabel">Add-on Enhancements &amp; Licensing</label>
     <div class="checks" id="extrasChecks" role="group" aria-labelledby="extrasLabel"></div>
+    <p class="hint">Prices marked &ldquo;from&rdquo; are confirmed against your brief before you pay. NSFW art with three or more characters and publishing licences (covers, dust jackets, endpapers, interior illustrations, special editions) are quoted individually: mention them in your brief and your quote will be confirmed.</p>
+
+    <div class="section-label">Characters &amp; pose</div>
 
     <div class="field">
-      <label for="brief">Character Physical Lore &amp; Art Brief</label>
-      <textarea id="brief" placeholder="Describe character appearance, hair, eye color, mood, wardrobe, weaponry, or link a Pinterest / moodboard."></textarea>
+      <label for="charDetails">Character details</label>
+      <textarea id="charDetails" placeholder="For each character: name, age, physical appearance, hair, eyes, build / height, clothing and distinctive features."></textarea>
     </div>
+
+    <div class="field">
+      <label for="poseNotes">Pose, interaction &amp; expression</label>
+      <textarea id="poseNotes" placeholder="What should the character(s) be doing? What expression or emotion? If there's more than one, how should they interact?"></textarea>
+    </div>
+
+    <div class="field">
+      <label for="sceneNotes">Scene (for illustrated scenes)</label>
+      <textarea id="sceneNotes" placeholder="Describe the setting you'd like. Is it based on a specific scene from the book? If so, describe it or paste the extract."></textarea>
+    </div>
+
+    <div class="field">
+      <label for="moodNotes">Mood, lighting &amp; colour direction</label>
+      <textarea id="moodNotes" placeholder="What overall feeling should the artwork have? Any particular lighting or colour direction?"></textarea>
+    </div>
+
+    <div class="field">
+      <label for="brief">Anything else about the art brief</label>
+      <textarea id="brief" placeholder="Wardrobe, weaponry, symbolism, or link a Pinterest / moodboard."></textarea>
+    </div>
+
+    <div class="section-label">Content level</div>
+
+    <div class="field">
+      <label for="nsfwLevel">NSFW</label>
+      <select id="nsfwLevel">
+        <option value="No">No</option>
+        <option value="Suggestive">Suggestive</option>
+        <option value="Nudity">Nudity</option>
+        <option value="Explicit">Explicit</option>
+      </select>
+    </div>
+    <p class="hint" id="nsfwHint">NSFW art is priced as an add-on above. All characters depicted must be adults (18+).</p>
+
+    <div class="row">
+      <div>
+        <label for="mustInclude">Must include</label>
+        <textarea id="mustInclude" placeholder="Anything that absolutely needs to be visible."></textarea>
+      </div>
+      <div>
+        <label for="doNotInclude">Do not include</label>
+        <textarea id="doNotInclude" placeholder="Anything you specifically don't want."></textarea>
+      </div>
+    </div>
+
+    <div class="section-label">Use, dates &amp; sharing</div>
+
+    <div class="field">
+      <label for="intendedUse">Intended use</label>
+      <select id="intendedUse">
+        <option value="Author promotional use only">Author promotional use only</option>
+        <option value="Commercial merchandise licence required">Commercial merchandise licence required</option>
+        <option value="Publishing use">Publishing use</option>
+        <option value="Not sure">Not sure</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="useDetails">If merchandise or publishing: details</label>
+      <input type="text" id="useDetails" placeholder="What will you sell, or which parts of the book (cover, dust jacket, endpapers, interior, special edition)?">
+    </div>
+    <p class="hint">Merchandise use needs the Commercial Merchandise Licence add-on above. Publishing use is quoted separately.</p>
+
+    <div class="row">
+      <div>
+        <label for="hasDeadline">Do you have a fixed deadline?</label>
+        <select id="hasDeadline">
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+      </div>
+      <div>
+        <label for="deadlineDate">Required by</label>
+        <input type="date" id="deadlineDate">
+      </div>
+    </div>
+    <div class="field">
+      <label for="deadlineReason">Reason for deadline, if relevant</label>
+      <input type="text" id="deadlineReason" placeholder="e.g. cover reveal, preorder launch">
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="sharing">Can the Artist share the finished artwork once completed?</label>
+        <select id="sharing">
+          <option value="Yes">Yes</option>
+          <option value="Yes, but not before the date given">Yes, but not before the date given</option>
+          <option value="Please discuss with me first">Please discuss with me first</option>
+        </select>
+      </div>
+      <div>
+        <label for="embargoDate">Embargo / reveal date</label>
+        <input type="text" id="embargoDate" placeholder="If sharing should wait">
+      </div>
+    </div>
+
+    <div class="section-label">References</div>
 
     <div class="field">
       <label for="refFiles">Upload Reference Images or Documents (optional)</label>
@@ -790,23 +931,48 @@
     <h2 id="step3Title">Commission Agreement</h2>
 
     <div class="contract-box">
-      <p style="font-size: 14.5px; color: #544c3e;">Please read and execute the standard author-artist agreement to confirm your reservation.</p>
+      <p style="font-size: 14.5px; color: #544c3e;">Please read the commission agreement and sign it below to confirm your reservation.</p>
 
-      <div class="contract-scroll" tabindex="0" aria-label="Commission agreement legal terms">
-        <h4>1. The Commission Scope</h4>
-        <p id="cSummary"></p>
+      <div class="contract-scroll" tabindex="0" aria-label="Commission agreement terms">
+        <h4>1. The Commission</h4>
+        <p>The Artist (The Crow&rsquo;s Quill) will create the artwork described in the commission brief submitted through this website and any later changes agreed by both parties in writing. The brief and supplied references form part of this agreement. All characters depicted must be fictional adults aged 18 or over.</p>
+        <p><strong>Commission type:</strong> <span id="cType"></span><br>
+        <strong>Agreed price:</strong> <span id="cPrice"></span><br>
+        <strong>Licence:</strong> <span id="cLicence"></span></p>
 
-        <h4>2. Financial Terms &amp; Deposit</h4>
-        <p>A 50% non-refundable deposit is required to secure your reserved slot. You will receive an official Stripe card payment link by email following submission. The remaining 50% balance is due upon approval of watermarked final renders before high-resolution files are transferred.</p>
+        <h4>2. Final Files</h4>
+        <p>The Client will receive the agreed finished digital artwork in the appropriate high-resolution format, plus any additional versions specifically agreed as part of the commission. Working files, layered files, sketches and source files are not included unless separately agreed.</p>
 
-        <h4>3. Revision Protocol</h4>
-        <p>Two (2) comprehensive rounds of feedback are included during the initial sketching stage to adjust anatomy, facial features, hair, and weaponry. Minor color tweaks are permitted at final render.</p>
+        <h4>3. Payment</h4>
+        <p>A 50% booking payment is due before work begins. The remaining 50% is due before the final high-resolution artwork is delivered. Payment plans may be agreed for larger commissions. If the Client requests work outside the agreed brief, the Artist will confirm any additional cost before carrying out that work. The Client&rsquo;s usage licence begins once the commission has been paid for in full. You will receive a card payment link by email after you sign.</p>
 
-        <h4>4. Intellectual Property &amp; Licensing</h4>
-        <p>The Artist retains copyright. The Author receives a perpetual, non-exclusive Author Promotional License for social media, website headers, book trailers, and reader swag. Merchandising or book cover publication rights apply only if designated in the agreed quote.</p>
+        <h4>4. Process &amp; Revisions</h4>
+        <p>The Artist will provide a sketch for approval before completing the final artwork. The commission includes two rounds of changes at sketch stage and minor corrections at final stage. One revision round means one consolidated set of requested changes. Once the sketch has been approved, major changes to the pose, composition, clothing, characters, setting or other agreed elements may incur an additional fee. Changes required because the Artist has not followed the agreed brief do not count as revisions.</p>
 
-        <h4>5. Ethical Generative AI Policy</h4>
-        <p>The Artist creates all artwork through bespoke digital painting. The Author agrees not to scrape, ingest, or feed the delivered artwork into generative AI models, LoRAs, or synthetic image generators.</p>
+        <h4>5. Timescale</h4>
+        <p><strong>Estimated completion:</strong> <span id="cEstimate"></span>. The Client agrees to provide required information, references and feedback within a reasonable time. If required information or feedback is delayed, the completion date may also move. Any fixed deadline must be agreed before the commission begins.</p>
+
+        <h4>6. Cancellation</h4>
+        <p>Either party may cancel the commission before completion. If the Client cancels after work has begun, the Artist may retain payment reasonably reflecting the work already completed and any reasonable loss resulting from the cancellation. Any remaining amount will be refunded where applicable.</p>
+        <p>If the Artist is unable to complete the commission, the Client will be refunded for any part of the commission paid for but not supplied.</p>
+        <p>Cancelled or unfinished artwork may not be used by the Client unless separate written permission is given. Either party may end an active commission where the other engages in abusive, threatening or seriously inappropriate behaviour toward the other.</p>
+
+        <h4>7. Copyright</h4>
+        <p>Copyright in the finished artwork remains with the Artist. The Client retains all rights they hold in their characters, books, series, world, text and other underlying intellectual property. Commissioning the artwork does not transfer ownership of either party&rsquo;s underlying intellectual property to the other. The Artist will not sell, license or otherwise commercially exploit commissioned artwork depicting the Client&rsquo;s original characters without the Client&rsquo;s permission.</p>
+
+        <h4>8. Usage Licence</h4>
+        <p><strong>Author Promotional Licence (included).</strong> The Client may use the finished artwork to promote the relevant book, characters or series, including social media, websites, newsletters, paid advertising, retailer graphics, character reveals, launch and preorder graphics, events and displays, banners, and free bookmarks, postcards, art cards, preorder gifts, reader swag and other promotional material given away free. The Client may crop, resize and add text where reasonably required for promotional use.</p>
+        <p><strong>Commercial Merchandise Licence (only if selected in your quote).</strong> A flat fee of 50% of the original artwork cost permits reproduction of the finished artwork on products offered for sale. Copyright remains with the Artist, and the Client may not sell, transfer or license the artwork itself to another person or business.</p>
+        <p><strong>Publishing use</strong> (covers, dust jackets, endpapers, interior illustrations, special-edition components) is quoted separately and agreed in writing before completion.</p>
+
+        <h4>9. Artist Portfolio &amp; Promotion</h4>
+        <p>The Artist may display the finished artwork on their website, portfolio and social media to promote their work. Where an embargo or reveal date has been agreed in your brief, the Artist will not publicly share the artwork before that date. If no embargo has been agreed, the Artist may share the finished artwork after delivery to the Client.</p>
+
+        <h4>10. AI &amp; Alteration</h4>
+        <p>The Client may not use the artwork to train generative AI systems or upload the artwork to generative AI services for the purpose of creating replacement or derivative artwork. The Client may not repaint, redraw, retouch, recolour or otherwise alter the artwork without the Artist&rsquo;s written permission.</p>
+
+        <h4>11. Credit</h4>
+        <p>Where credit is reasonably practical, the Artist&rsquo;s preferred credit is &ldquo;Art by The Crow&rsquo;s Quill&rdquo;. Credit is appreciated when the artwork itself is being showcased, but is not required on every advertisement, promotional graphic or physical item on which the artwork appears.</p>
       </div>
 
       <div class="field">
@@ -878,6 +1044,7 @@ let slots = [];
 let state = { 
   slotId: null, 
   slotLabel: '', 
+  slotDate: null,
   extraIds: [], 
   quoteId: null, 
   commissionId: null, 
@@ -949,7 +1116,7 @@ function parseUrlParams() {
   const rush = params.get('rush') === 'true';
 
   if (commissionTypes.length) {
-    const group = (bgParam && HOMEPAGE_BG_TO_GROUP[bgParam]) || (typeParam && HOMEPAGE_TYPE_TO_GROUP[typeParam]);
+    const group = (bgParam && HOMEPAGE_BG_TO_GROUP[bgParam]) || (typeParam && (HOMEPAGE_TYPE_TO_GROUP[typeParam] || typeParam));
     const groups = framingGroups();
     const matchedGroup = group && groups.find(g => g.group === group);
     if (matchedGroup) {
@@ -961,19 +1128,14 @@ function parseUrlParams() {
     }
   }
 
-  // Pre-check extras if matches exist
+  // Pre-check extras passed from the homepage calculator (?extras=id,id) and the old merch/rush flags
   if (extras.length) {
+    const wanted = new Set((params.get('extras') || '').split(',').filter(Boolean));
+    if (merch) wanted.add('merch');
+    if (rush) wanted.add('rush');
     extras.forEach(e => {
-      const lower = e.label.toLowerCase();
-      if ((merch && lower.includes('merch')) || (rush && lower.includes('rush'))) {
-        if (!state.extraIds.includes(e.id)) {
-          state.extraIds.push(e.id);
-          const chip = document.querySelector(`.chk[data-id="${e.id}"]`);
-          if (chip) {
-            chip.classList.add('on');
-            chip.setAttribute('aria-pressed', 'true');
-          }
-        }
+      if (wanted.has(e.id) && !state.extraIds.includes(e.id)) {
+        setExtra(e.id, true);
       }
     });
   }
@@ -983,7 +1145,7 @@ async function loadData() {
   try {
     const [{ data: ct }, { data: ex }, { data: sl }] = await Promise.all([
       sb.from('commission_types').select('*').order('sort_order'),
-      sb.from('extras').select('*'),
+      sb.from('extras').select('*').order('sort_order'),
       sb.from('slots').select('*').eq('status','open').order('slot_date')
     ]);
     commissionTypes = ct || [];
@@ -1016,7 +1178,7 @@ function renderSlots() {
     el.setAttribute('tabindex', '0');
     const remaining = s.capacity - s.booked_count;
     const d = new Date(s.slot_date);
-    const dateLabel = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    const dateLabel = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
     el.setAttribute('aria-label', `${dateLabel}, ${remaining} slot${remaining === 1 ? '' : 's'} available`);
     el.innerHTML = `<div class="d">${dateLabel}</div><div class="m">${remaining} slot${remaining === 1 ? '' : 's'} remaining</div>`;
     
@@ -1029,6 +1191,7 @@ function renderSlots() {
       el.setAttribute('aria-pressed', 'true');
       state.slotId = s.id;
       state.slotLabel = dateLabel;
+      state.slotDate = s.slot_date;
       document.getElementById('toStep1').disabled = false;
     };
     
@@ -1124,16 +1287,10 @@ function renderExtras() {
     chip.setAttribute('role', 'button');
     chip.setAttribute('tabindex', '0');
     chip.setAttribute('aria-pressed', 'false');
-    const label = e.is_percentage ? `${e.label} (+${e.percentage}%)` : `${e.label} ($${e.price})`;
-    chip.textContent = label;
+    chip.textContent = `${e.label} (${extraPriceText(e)})`;
     
     const toggle = () => {
-      chip.classList.toggle('on');
-      const on = chip.classList.contains('on');
-      chip.setAttribute('aria-pressed', String(on));
-      if (on) state.extraIds.push(e.id);
-      else state.extraIds = state.extraIds.filter(id => id !== e.id);
-      updateEstimate();
+      setExtra(e.id, !state.extraIds.includes(e.id));
     };
     
     chip.addEventListener('click', toggle);
@@ -1147,28 +1304,47 @@ function renderExtras() {
   });
 }
 
+function extraPriceText(e) {
+  return e.display_price || (e.is_percentage ? `+${e.percentage}%` : `+$${e.price}`);
+}
+
+// Turn an extra on/off, keeping chips, state and the estimate in sync.
+// Options in the same exclusive group (e.g. NSFW for 1 vs 2 characters) switch each other off.
+function setExtra(id, on) {
+  const ex = extras.find(e => e.id === id);
+  if (!ex) return;
+  if (on && ex.option_group) {
+    extras.filter(o => o.option_group === ex.option_group && o.id !== id).forEach(o => setExtra(o.id, false));
+  }
+  const has = state.extraIds.includes(id);
+  if (on && !has) state.extraIds.push(id);
+  if (!on && has) state.extraIds = state.extraIds.filter(x => x !== id);
+  const chip = document.querySelector(`.chk[data-id="${id}"]`);
+  if (chip) {
+    chip.classList.toggle('on', on);
+    chip.setAttribute('aria-pressed', String(on));
+  }
+  updateEstimate();
+  updateNsfwHint();
+}
+
 function updateEstimate() {
   const typeId = document.getElementById('type').value;
   const ct = commissionTypes.find(t => t.id === typeId);
   if (!ct) return;
   const base = parseFloat(ct.base_price);
-  const isEst = ct.is_estimate === true;
+  let isEst = ct.is_estimate === true;
 
-  let fixed = 0, pct = 0;
-  state.extraIds.forEach(id => {
-    const ex = extras.find(e => e.id === id);
-    if (ex) {
-      if (ex.is_percentage) pct += ex.percentage;
-      else fixed += parseFloat(ex.price);
-    }
-  });
-
-  const sub = base + fixed;
-  const total = Math.round(sub * (1 + pct / 100));
+  // Same maths as the server: fixed extras first, then percentage extras on the original quote
+  const chosen = state.extraIds.map(id => extras.find(e => e.id === id)).filter(Boolean);
+  let sub = base;
+  chosen.filter(e => !e.is_percentage).forEach(e => { sub += parseFloat(e.price); if (e.is_from) isEst = true; });
+  let total = sub;
+  chosen.filter(e => e.is_percentage).forEach(e => { total += Math.round(sub * e.percentage / 100); if (e.is_from) isEst = true; });
   const deposit = Math.round(total * 0.5);
 
   document.getElementById('estimateAmt').textContent = `$${total}`;
-  document.getElementById('estimateLabel').textContent = isEst ? 'Estimated Starting Quote' : 'Calculated Quote';
+  document.getElementById('estimateLabel').textContent = isEst ? 'Estimated Quote' : 'Calculated Quote';
   document.getElementById('estimateSub').textContent = `50% deposit ($${deposit}) due upon signing. Final 50% due before delivery.`;
 }
 
@@ -1210,7 +1386,7 @@ document.getElementById('toStep2').addEventListener('click', async () => {
   const name = document.getElementById('name').value.trim();
   const email = document.getElementById('email').value.trim();
   const book = document.getElementById('book').value.trim();
-  const brief = document.getElementById('brief').value.trim();
+  const brief = composeBrief();
   const typeId = document.getElementById('type').value;
   const err = document.getElementById('step1Error');
   err.style.display = 'none';
@@ -1287,7 +1463,17 @@ document.getElementById('toStep2').addEventListener('click', async () => {
 
 // Step 2 Accept -> Step 3
 document.getElementById('acceptBtn').addEventListener('click', () => {
-  document.getElementById('cSummary').textContent = `${state.typeLabel} commission scheduled for the week of ${state.slotLabel}. Total fee: $${state.total} (50% deposit of $${state.deposit} due to confirm).`;
+  const hasMerch = state.extraIds.includes('merch');
+  document.getElementById('cType').textContent = state.typeLabel;
+  document.getElementById('cPrice').textContent = `$${state.total} USD (50% booking payment of $${state.deposit})`;
+  document.getElementById('cLicence').textContent = 'Author Promotional Licence' + (hasMerch ? ' + Commercial Merchandise Licence' : '');
+  let est = 'to be confirmed by the Artist';
+  if (state.slotDate) {
+    const d = new Date(state.slotDate);
+    d.setUTCDate(d.getUTCDate() + 14);
+    est = 'around ' + d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+  }
+  document.getElementById('cEstimate').textContent = est;
   showStep('step3');
 });
 
@@ -1338,6 +1524,70 @@ signBtn.addEventListener('click', async () => {
     signBtn.disabled = false;
     signBtn.textContent = 'Sign & Reserve My Slot';
   }
+});
+
+// Bring the commission request form onto the site: the structured fields are written
+// into the brief the Artist receives, as labelled lines.
+function composeBrief() {
+  const v = id => ((document.getElementById(id) || {}).value || '').trim();
+  const groups = [];
+  const lines = (pairs) => {
+    const out = pairs.filter(p => p[1]).map(p => p[0] + ': ' + p[1]);
+    if (out.length) groups.push(out.join('\n'));
+  };
+
+  const published = v('published');
+  const release = v('releaseDate');
+  lines([
+    ['Author / business name', v('authorBiz')],
+    ['Social / website', v('social')],
+    ['Series', v('series')],
+    ['Genre', v('genre')],
+    ['Currently published', published],
+    ['Expected release / reveal date', release]
+  ]);
+  lines([
+    ['Character details', v('charDetails')],
+    ['Pose, interaction & expression', v('poseNotes')],
+    ['Scene', v('sceneNotes')],
+    ['Mood / lighting / colour', v('moodNotes')],
+    ['Other brief notes', v('brief')]
+  ]);
+  const nsfw = v('nsfwLevel');
+  lines([
+    ['NSFW level', nsfw && nsfw !== 'No' ? nsfw : ''],
+    ['Must include', v('mustInclude')],
+    ['Do not include', v('doNotInclude')]
+  ]);
+  lines([
+    ['Intended use', v('intendedUse')],
+    ['Use details', v('useDetails')],
+    ['Fixed deadline', v('hasDeadline') === 'Yes' ? ('Yes' + (v('deadlineDate') ? ' - required by ' + v('deadlineDate') : '')) : ''],
+    ['Deadline reason', v('deadlineReason')],
+    ['Artist may share finished artwork', v('sharing')],
+    ['Embargo / reveal date', v('embargoDate')]
+  ]);
+  return groups.join('\n\n') || null;
+}
+
+function updateNsfwHint() {
+  const level = document.getElementById('nsfwLevel').value;
+  const hasNsfwExtra = state.extraIds.some(id => { const e = extras.find(x => x.id === id); return e && e.option_group === 'nsfw'; });
+  const hint = document.getElementById('nsfwHint');
+  if (!hint) return;
+  if ((level === 'Nudity' || level === 'Explicit') && !hasNsfwExtra) {
+    hint.textContent = 'NSFW art is priced as an add-on. Pick the NSFW option for 1 or 2 characters above so it is included in your quote (3+ characters is quoted individually). All characters must be adults (18+).';
+  } else if (level === 'No' && hasNsfwExtra) {
+    hint.textContent = 'You have an NSFW add-on selected, but the content level is set to No. Please update one of them. All characters must be adults (18+).';
+  } else {
+    hint.textContent = 'NSFW art is priced as an add-on above. All characters depicted must be adults (18+).';
+  }
+}
+document.getElementById('nsfwLevel').addEventListener('change', updateNsfwHint);
+
+// Choosing merchandise use switches on the merchandise licence add-on
+document.getElementById('intendedUse').addEventListener('change', (ev) => {
+  if (ev.target.value === 'Commercial merchandise licence required') setExtra('merch', true);
 });
 
 // Initialize Studio Data on Load

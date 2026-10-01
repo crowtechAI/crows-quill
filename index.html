@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Crow's Quill — Character Illustration for Indie Authors</title>
-<meta name="description" content="Character portraits, illustrated scenes and cover art for dark fantasy and romantasy authors. Instant quotes from $75.">
+<meta name="description" content="Character portraits, illustrated scenes and cover art for dark fantasy and romantasy authors. Instant quotes from $100.">
 <meta name="theme-color" content="#0e0c15">
 <meta name="color-scheme" content="dark">
 <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
@@ -1294,6 +1294,20 @@
     color: var(--parchment-muted);
   }
 
+  .px { font: inherit; font-weight: inherit; }
+  .calc-hint { font-size: 12.5px; color: var(--parchment-muted); margin-top: 10px; line-height: 1.5; }
+
+  /* Full price list */
+  .pl-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  .pl-card { background: var(--ink-soft); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 28px 26px; }
+  .pl-card h3 { font-size: 22px; font-style: italic; margin-bottom: 14px; color: var(--parchment); }
+  .pl-wide { grid-column: 1 / -1; }
+  .pl-cols { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; }
+  .pl-row { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px dashed var(--line); font-size: 14.5px; color: var(--text-body); }
+  .pl-row span:last-child { color: var(--gold-bright); font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+  .pl-note { font-size: 13px; color: var(--parchment-muted); margin-top: 12px; line-height: 1.55; max-width: none; }
+  @media (max-width: 960px) { .pl-grid, .pl-cols { grid-template-columns: 1fr; } }
+
   /* Responsive Adjustments */
   @media (max-width: 960px) {
     .hero-grid { grid-template-columns: 1fr; gap: 40px; }
@@ -1413,12 +1427,12 @@
       <h1>Your characters, drawn in <span class="gilded">ink and firelight</span></h1>
 
       <p class="hero-lead">
-        Character portraits, illustrated scenes and cover art for indie authors. Prices are listed up front, most pieces take one to two weeks, and print and promo licensing is included.
+        Character portraits, illustrated scenes and cover art for indie authors. Prices are listed up front, most pieces take one to two weeks, and an author promotional licence is included.
       </p>
 
       <div class="hero-buttons">
         <a href="/site/" class="btn-primary">
-          <span>Book a Commission — from $75</span>
+          <span>Book a Commission — from <b class="px" data-price="portrait1">$100</b></span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
         <a href="#calculator" class="btn-ghost">
@@ -1429,7 +1443,7 @@
 
       <div class="hero-badges">
         <div class="hero-badge-item">
-          <strong>From $75</strong>
+          <strong>From <b class="px" data-price="portrait1">$100</b></strong>
           <span>Character portraits</span>
         </div>
         <div class="hero-badge-item">
@@ -1441,8 +1455,8 @@
           <span>Revisions included</span>
         </div>
         <div class="hero-badge-item">
-          <strong>Direct Slot</strong>
-          <span>Guaranteed delivery</span>
+          <strong>Booked Slot</strong>
+          <span>Estimated delivery date in your agreement</span>
         </div>
       </div>
     </div>
@@ -1473,105 +1487,32 @@
         <span>Get a price</span>
       </div>
       <h2 class="section-title">Quote Calculator</h2>
-      <p class="section-subtitle">Pick what you want drawn and see the price straight away, itemized. No back and forth by email.</p>
+      <p class="section-subtitle">Pick what you want drawn and see the price straight away, itemized. All prices are in US dollars.</p>
     </div>
 
     <div class="estimator-container">
-      <!-- Calculator Controls -->
+      <!-- Calculator Controls (built from the live price list) -->
       <div class="calc-controls">
-        <!-- Framing Tier -->
         <div class="calc-group">
-          <div class="calc-label">
-            <span>1. Size and framing</span>
-          </div>
-          <div class="calc-options" role="radiogroup" aria-label="Character Framing Selection">
-            <button type="button" class="calc-option-btn selected" data-type="portrait" data-price="75">
-              <strong>Portrait</strong>
-              <span class="subtext">Chest Up · $75</span>
-            </button>
-            <button type="button" class="calc-option-btn" data-type="half_body" data-price="95">
-              <strong>Half Body</strong>
-              <span class="subtext">Waist Up · $95</span>
-            </button>
-            <button type="button" class="calc-option-btn" data-type="full_body" data-price="125">
-              <strong>Full Body</strong>
-              <span class="subtext">Head to Toe · $125</span>
-            </button>
-          </div>
+          <div class="calc-label"><span>1. What are you commissioning?</span></div>
+          <div class="calc-options" id="calcCategory" role="radiogroup" aria-label="Commission category" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));"></div>
         </div>
 
-        <!-- Number of Characters -->
         <div class="calc-group">
-          <div class="calc-label">
-            <span>2. Number of Characters</span>
-          </div>
-          <div class="calc-options" role="radiogroup" aria-label="Character Count Selection">
-            <button type="button" class="calc-option-btn selected" data-chars="1" data-extra="0">
-              <strong>Solo Character</strong>
-              <span class="subtext">Single Subject</span>
-            </button>
-            <button type="button" class="calc-option-btn" data-chars="2" data-extra="70">
-              <strong>Two Characters</strong>
-              <span class="subtext">Couple / Rivals · +$70</span>
-            </button>
-            <button type="button" class="calc-option-btn" data-chars="3" data-extra="130">
-              <strong>Three Characters</strong>
-              <span class="subtext">Party / Trio · +$130</span>
-            </button>
-          </div>
+          <div class="calc-label"><span id="calcFramingLabel">2. Size and framing</span></div>
+          <div class="calc-options" id="calcFraming" role="radiogroup" aria-labelledby="calcFramingLabel" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));"></div>
         </div>
 
-        <!-- Background Complexity -->
         <div class="calc-group">
-          <div class="calc-label">
-            <span>3. Background</span>
-          </div>
-          <div class="calc-options" role="radiogroup" aria-label="Background Selection">
-            <button type="button" class="calc-option-btn selected" data-bg="none" data-price="0">
-              <strong>Atmospheric Mists</strong>
-              <span class="subtext">Included free</span>
-            </button>
-            <button type="button" class="calc-option-btn" data-bg="basic" data-price="80">
-              <strong>Illustrated Scene</strong>
-              <span class="subtext">Chamber / Forest · +$80</span>
-            </button>
-            <button type="button" class="calc-option-btn" data-bg="detailed" data-price="130">
-              <strong>Elaborate Realm</strong>
-              <span class="subtext">Gothic Architecture · +$130</span>
-            </button>
-          </div>
+          <div class="calc-label"><span>3. Number of characters</span></div>
+          <div class="calc-options" id="calcChars" role="radiogroup" aria-label="Number of characters" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));"></div>
+          <p class="calc-hint">Need three or more? Add &ldquo;Additional character&rdquo; below for each extra one.</p>
         </div>
 
-        <!-- Optional Add-ons -->
         <div class="calc-group">
-          <div class="calc-label">
-            <span>4. Extras and licensing</span>
-          </div>
-          <div class="calc-checkboxes">
-            <div class="calc-checkbox-item" data-id="familiar" data-price="25" tabindex="0" role="checkbox" aria-checked="false">
-              <div class="calc-checkbox-label">
-                <div class="calc-checkbox-custom">&checkmark;</div>
-                <span>Familiar / Raven / Small Companion</span>
-              </div>
-              <div class="calc-checkbox-price">+$25</div>
-            </div>
-
-            <div class="calc-checkbox-item" data-id="merch" data-rate="0.50" tabindex="0" role="checkbox" aria-checked="false">
-              <div class="calc-checkbox-label">
-                <div class="calc-checkbox-custom">&checkmark;</div>
-                <span>Commercial Merchandise License (Prints, Swag, Cards)</span>
-              </div>
-              <div class="calc-checkbox-price">+50%</div>
-            </div>
-
-            <div class="calc-checkbox-item" data-id="rush" data-rate="0.30" tabindex="0" role="checkbox" aria-checked="false">
-              <div class="calc-checkbox-label">
-                <div class="calc-checkbox-custom">&checkmark;</div>
-                <span>Priority Rush Turnaround (Under 5 days)</span>
-              </div>
-              <div class="calc-checkbox-price">+30%</div>
-            </div>
-          </div>
+          <div class="calc-label"><span>4. Extras, NSFW and licensing</span></div>
+          <div class="calc-checkboxes" id="calcExtras"></div>
+          <p class="calc-hint">Prices marked &ldquo;from&rdquo; are confirmed against your brief. NSFW art with three or more characters and publishing licences are quoted individually. All characters must be adults (18+).</p>
         </div>
       </div>
 
@@ -1582,41 +1523,21 @@
           <span>USD ($)</span>
         </div>
 
-        <div class="receipt-rows" id="receiptRows">
-          <div class="receipt-row">
-            <span id="receiptBaseName">Portrait (1 Character)</span>
-            <span id="receiptBasePrice">$75</span>
-          </div>
-          <div class="receipt-row" id="receiptBgRow" style="display: none;">
-            <span id="receiptBgName">Illustrated Scene</span>
-            <span id="receiptBgPrice">+$80</span>
-          </div>
-          <div class="receipt-row" id="receiptFamiliarRow" style="display: none;">
-            <span>Familiar / Companion</span>
-            <span>+$25</span>
-          </div>
-          <div class="receipt-row" id="receiptMerchRow" style="display: none;">
-            <span>Commercial Merch Rights</span>
-            <span id="receiptMerchPrice">+$0</span>
-          </div>
-          <div class="receipt-row" id="receiptRushRow" style="display: none;">
-            <span>Priority Rush Delivery</span>
-            <span id="receiptRushPrice">+$0</span>
-          </div>
-        </div>
+        <div class="receipt-rows" id="receiptRows"></div>
 
         <div class="receipt-divider"></div>
 
         <div class="receipt-total">
           <div class="receipt-total-label">Estimated Total</div>
-          <div class="receipt-total-val" id="receiptTotalVal">$75</div>
+          <div class="receipt-total-val" id="receiptTotalVal">$0</div>
         </div>
 
         <p class="receipt-deposit-note">
-          &bull; 50% deposit ($<span id="receiptDepositVal">37.50</span>) secures your production slot.<br>
+          &bull; 50% deposit ($<span id="receiptDepositVal">0</span>) secures your production slot.<br>
           &bull; 2 revision rounds included at sketch stage.<br>
-          &bull; High-res 300 DPI deliverables upon final payment.
+          &bull; High-res files delivered once the balance is paid.
         </p>
+        <p class="receipt-deposit-note" id="receiptEstNote" hidden>This is an estimate. Items marked &ldquo;from&rdquo; are confirmed against your brief before you pay.</p>
 
         <a href="/site/" id="bookEstimateBtn" class="btn-primary" style="width: 100%; justify-content: center;">
           <span>Lock In This Scope</span>
@@ -1660,7 +1581,7 @@
             <a class="gallery-view" href="/images/gallery/portrait-new.jpg" target="_blank" rel="noopener">View full size &nearr;</a>
           </div>
           <div class="gallery-footer">
-            <span class="gallery-price">From $75</span>
+            <span class="gallery-price">From <b class="px" data-price="portrait1">$100</b></span>
             <a href="/site/" class="gallery-link">Commission &rarr;</a>
           </div>
         </div>
@@ -1677,7 +1598,7 @@
             <a class="gallery-view" href="/images/gallery/romantasy-couple.jpg?v=2" target="_blank" rel="noopener">View full size &nearr;</a>
           </div>
           <div class="gallery-footer">
-            <span class="gallery-price">From $195</span>
+            <span class="gallery-price">From <b class="px" data-price="full2">$255</b></span>
             <a href="/site/" class="gallery-link">Commission &rarr;</a>
           </div>
         </div>
@@ -1694,7 +1615,7 @@
             <a class="gallery-view" href="/images/gallery/illustrated-scene.jpg" target="_blank" rel="noopener">View full size &nearr;</a>
           </div>
           <div class="gallery-footer">
-            <span class="gallery-price">From $225</span>
+            <span class="gallery-price">From <b class="px" data-price="scenebasic2">$295</b></span>
             <a href="/site/" class="gallery-link">Commission &rarr;</a>
           </div>
         </div>
@@ -1712,7 +1633,7 @@
         <span>Pricing</span>
       </div>
       <h2 class="section-title">Commission Tiers</h2>
-      <p class="section-subtitle">Every commission comes with high-resolution print files, web previews and promotional rights for you as the author.</p>
+      <p class="section-subtitle">Every commission comes with high-resolution files and an author promotional licence. Merchandise and publishing use are priced separately.</p>
     </div>
 
     <div class="price-tier-grid">
@@ -1720,7 +1641,7 @@
       <div class="price-card">
         <h3 class="price-card-title">Character Portrait</h3>
         <p class="price-card-sub">Good for chapter openers, character cards and social posts.</p>
-        <div class="price-card-amount">$75 <span>/ character</span></div>
+        <div class="price-card-amount"><b class="px" data-price="portrait1">$100</b> <span>/ character</span></div>
 
         <ul class="price-features">
           <li>
@@ -1729,7 +1650,7 @@
           </li>
           <li>
             <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            <span>Textured mist backdrop</span>
+            <span>Supplied without a background (add one with an illustrated scene)</span>
           </li>
           <li>
             <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
@@ -1748,8 +1669,8 @@
       <div class="price-card featured">
         <div class="price-ribbon">Most Popular</div>
         <h3 class="price-card-title">Full Body / Duo</h3>
-        <p class="price-card-sub">For book reveals, special editions and dust jackets.</p>
-        <div class="price-card-amount">$125 <span>/ solo ($195 duo)</span></div>
+        <p class="price-card-sub">For book reveals, character cards and launch graphics.</p>
+        <div class="price-card-amount"><b class="px" data-price="full1">$165</b> <span>/ solo (<b class="px" data-price="full2">$255</b> duo)</span></div>
 
         <ul class="price-features">
           <li>
@@ -1777,7 +1698,7 @@
       <div class="price-card">
         <h3 class="price-card-title">Illustrated Scene</h3>
         <p class="price-card-sub">A character placed in a full painted scene.</p>
-        <div class="price-card-amount">$225 <span>/ starting</span></div>
+        <div class="price-card-amount"><b class="px" data-price="scenebasic1">$230</b> <span>/ starting</span></div>
 
         <ul class="price-features">
           <li>
@@ -1794,11 +1715,73 @@
           </li>
           <li>
             <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            <span>Cover-ready format (front or wrap-around)</span>
+            <span>High-resolution final files</span>
           </li>
         </ul>
 
         <a href="/site/" class="btn-ghost" style="width: 100%; justify-content: center;">Select Scene Slot</a>
+      </div>
+    </div>
+
+    <!-- Full price list (prices fill from the live list; the numbers here are the fallback) -->
+    <div class="section-header text-center" style="margin-top: 72px; margin-bottom: 36px;">
+      <h3 class="section-title" style="font-size: clamp(26px, 3vw, 34px);">Full price list</h3>
+      <p class="section-subtitle">Everything in one place. All prices are in US dollars.</p>
+    </div>
+
+    <div class="pl-grid">
+      <div class="pl-card">
+        <h3>Character Art</h3>
+        <div class="pl-row"><span>Portrait / Bust &mdash; 1 character</span><span><b class="px" data-price="portrait1">$100</b></span></div>
+        <div class="pl-row"><span>Half Body &mdash; 1 character</span><span><b class="px" data-price="half1">$125</b></span></div>
+        <div class="pl-row"><span>Full Body &mdash; 1 character</span><span><b class="px" data-price="full1">$165</b></span></div>
+        <div class="pl-row"><span>Portrait / Bust &mdash; 2 characters</span><span><b class="px" data-price="portrait2">$160</b></span></div>
+        <div class="pl-row"><span>Half Body &mdash; 2 characters</span><span><b class="px" data-price="half2">$205</b></span></div>
+        <div class="pl-row"><span>Full Body &mdash; 2 characters</span><span><b class="px" data-price="full2">$255</b></span></div>
+        <div class="pl-row"><span>Additional character</span><span>From <b class="px" data-price="extra:additional">$80</b></span></div>
+        <p class="pl-note">Character art does not include a background.</p>
+      </div>
+
+      <div class="pl-card">
+        <h3>Illustrated Scenes</h3>
+        <div class="pl-row"><span>Basic background &mdash; 1 character</span><span>From <b class="px" data-price="scenebasic1">$230</b></span></div>
+        <div class="pl-row"><span>Basic background &mdash; 2 characters</span><span>From <b class="px" data-price="scenebasic2">$295</b></span></div>
+        <div class="pl-row"><span>Detailed background &mdash; 1 character</span><span>From <b class="px" data-price="scenedetail1">$295</b></span></div>
+        <div class="pl-row"><span>Detailed background &mdash; 2 characters</span><span>From <b class="px" data-price="scenedetail2">$365</b></span></div>
+        <p class="pl-note"><strong>Basic:</strong> a simple setting with limited environmental detail. <strong>Detailed:</strong> a more developed setting that needs significantly more environmental work. Final pricing is confirmed from your brief before booking.</p>
+      </div>
+
+      <div class="pl-card">
+        <h3>Extras</h3>
+        <div class="pl-row"><span>Small pet / familiar</span><span>From +<b class="px" data-price="extra:pet">$35</b></span></div>
+        <div class="pl-row"><span>Large animal / creature</span><span>From +<b class="px" data-price="extra:creature">$55</b></span></div>
+        <div class="pl-row"><span>Alternate expression</span><span>+$20&ndash;$35</span></div>
+        <div class="pl-row"><span>Rush commission</span><span>+25&ndash;40% of original quote</span></div>
+        <p class="pl-note">Additional charges only apply where the requested element creates significant extra work.</p>
+      </div>
+
+      <div class="pl-card">
+        <h3>NSFW Art</h3>
+        <div class="pl-row"><span>1 character</span><span>From +<b class="px" data-price="extra:nsfw1">$35</b></span></div>
+        <div class="pl-row"><span>2 characters</span><span>From +<b class="px" data-price="extra:nsfw2">$55</b></span></div>
+        <div class="pl-row"><span>3+ characters</span><span>Custom quote</span></div>
+        <p class="pl-note">NSFW pricing is added to the base commission. All characters depicted in NSFW art must be adults.</p>
+      </div>
+
+      <div class="pl-card pl-wide">
+        <h3>Payment &amp; Revisions</h3>
+        <div class="pl-cols">
+          <div>
+            <div class="pl-row"><span>On quote agreement</span><span>50% to book</span></div>
+            <div class="pl-row"><span>Before final delivery</span><span>50% balance</span></div>
+            <p class="pl-note">Payment plans are available by agreement for larger commissions.</p>
+          </div>
+          <div>
+            <div class="pl-row"><span>Sketch stage</span><span>2 rounds of changes</span></div>
+            <div class="pl-row"><span>Final stage</span><span>Minor corrections</span></div>
+            <p class="pl-note">One revision round means one consolidated set of requested changes. Major changes after the sketch is approved that weren&rsquo;t in the agreed brief may incur an additional fee.</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1876,7 +1859,7 @@
         <div class="licensing-badge">Included Free</div>
         <h3 class="licensing-title">Author Promotional</h3>
         <p class="licensing-text">
-          Free with every commission. Use it on your website, newsletter headers, Instagram and TikTok reveals, Kickstarter campaigns and free reader swag.
+          Included with every commission. Use the art to promote your book, characters or series: social media, your website and newsletters, paid advertising, retailer graphics, character reveals, launch and preorder graphics, events and displays, banners, and free bookmarks, postcards, art cards, preorder gifts and reader swag. You can crop, resize and add text where needed.
         </p>
       </div>
 
@@ -1884,7 +1867,7 @@
         <div class="licensing-badge">+50% Add-on</div>
         <h3 class="licensing-title">Commercial Merchandise</h3>
         <p class="licensing-text">
-          Sell prints, dust jacket inserts, bookmarks, apparel and stickers at conventions or in your reader shop. No royalties and no reporting.
+          A flat fee of +50% of the original artwork cost lets you put the art on items you sell, such as postcards, bookmarks and art prints. It doesn’t include resale rights for the artwork itself, and copyright stays with the artist.
         </p>
       </div>
 
@@ -1892,7 +1875,7 @@
         <div class="licensing-badge">Custom Quote</div>
         <h3 class="licensing-title">Full Publishing Rights</h3>
         <p class="licensing-text">
-          For wrap-around printed covers, mass-market editions or omnibus slipcases. Proofing and spine alignment are included.
+          Using the art as part of the book itself is quoted separately: covers, dust jackets, endpapers, interior illustrations and special-edition components. Production specifications are agreed as part of the quote.
         </p>
       </div>
     </div>
@@ -1938,7 +1921,7 @@
           <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
         </summary>
         <div class="faq-answer">
-          A 50% non-refundable deposit books your slot. The other 50% is due after you've reviewed and approved the watermarked final, just before you get the full-resolution files.
+          A 50% deposit books your slot. The other 50% is due before you receive the final high-resolution files, after you've reviewed the watermarked final. Payment plans can be arranged for larger commissions. If you cancel after work has started, the artist keeps a fair amount for the work already done and refunds the rest. If the artist can't finish, you're refunded for anything you paid for that wasn't delivered.
         </div>
       </details>
 
@@ -1948,7 +1931,37 @@
           <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
         </summary>
         <div class="faq-answer">
-          Yes. Romantasy and dark romance are a regular part of the work. Every character has to be an adult (18+). The brief form has spicy/NSFW options.
+          Yes. Romantasy and dark romance are a regular part of the work. NSFW art is an add-on: from +<b class="px" data-price="extra:nsfw1">$35</b> for one character and from +<b class="px" data-price="extra:nsfw2">$55</b> for two, with three or more characters quoted individually. Every character has to be an adult (18+). You pick suggestive, nudity or explicit on the booking form.
+        </div>
+      </details>
+
+      <details class="faq-card">
+        <summary class="faq-question">
+          <span>How do revisions work?</span>
+          <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="faq-answer">
+          You get two rounds of changes at the sketch stage and minor corrections at the final stage. One round means one consolidated set of requested changes. Major changes after the sketch is approved, such as a new pose, composition, outfit or setting, may cost extra.
+        </div>
+      </details>
+
+      <details class="faq-card">
+        <summary class="faq-question">
+          <span>Can you keep my art private until my cover reveal?</span>
+          <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="faq-answer">
+          Yes. Tell us your reveal date on the booking form and the artwork won't be shared publicly before it. If no date is agreed, the artist may share the finished piece in the portfolio after it's been delivered to you.
+        </div>
+      </details>
+
+      <details class="faq-card">
+        <summary class="faq-question">
+          <span>What if I need it by a fixed date?</span>
+          <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="faq-answer">
+          Delivery dates are estimates and can move if feedback or information arrives late. If you have a fixed deadline, put it on the booking form so it can be agreed before work begins. A rush commission is an add-on (25&ndash;40% of the original quote).
         </div>
       </details>
     </div>
@@ -2137,137 +2150,258 @@
     observedSections.forEach(section => sectionObserver.observe(section));
   }
 
-  // Interactive Live Commission Calculator State
-  const calcState = {
-    framingType: 'portrait',
-    framingPrice: 75,
-    framingName: 'Portrait',
-    charCount: 1,
-    charExtra: 0,
-    bgType: 'none',
-    bgPrice: 0,
-    bgName: 'Atmospheric Mists',
-    hasFamiliar: false,
-    hasMerch: false,
-    hasRush: false
+  // ---- Price list: loaded live from Supabase (same source the booking form quotes from),
+  // with a built-in copy so the page still works if the database can't be reached. ----
+  const PRICE_FALLBACK = {
+    types: [
+      { id: 'portrait1', label: 'Portrait — 1 character', category: 'character_art', base_price: 100, is_estimate: false, sort_order: 1 },
+      { id: 'half1', label: 'Half body — 1 character', category: 'character_art', base_price: 125, is_estimate: false, sort_order: 2 },
+      { id: 'full1', label: 'Full body — 1 character', category: 'character_art', base_price: 165, is_estimate: false, sort_order: 3 },
+      { id: 'portrait2', label: 'Portrait — 2 characters', category: 'character_art', base_price: 160, is_estimate: false, sort_order: 4 },
+      { id: 'half2', label: 'Half body — 2 characters', category: 'character_art', base_price: 205, is_estimate: false, sort_order: 5 },
+      { id: 'full2', label: 'Full body — 2 characters', category: 'character_art', base_price: 255, is_estimate: false, sort_order: 6 },
+      { id: 'scenebasic1', label: 'Illustrated scene, basic bg — 1 character', category: 'illustrated_scene', base_price: 230, is_estimate: true, sort_order: 7 },
+      { id: 'scenedetail1', label: 'Illustrated scene, detailed bg — 1 character', category: 'illustrated_scene', base_price: 295, is_estimate: true, sort_order: 8 },
+      { id: 'scenebasic2', label: 'Illustrated scene, basic bg — 2 characters', category: 'illustrated_scene', base_price: 295, is_estimate: true, sort_order: 9 },
+      { id: 'scenedetail2', label: 'Illustrated scene, detailed bg — 2 characters', category: 'illustrated_scene', base_price: 365, is_estimate: true, sort_order: 10 }
+    ],
+    extras: [
+      { id: 'pet', label: 'Small pet / familiar', price: 35, is_percentage: false, percentage: null, is_from: true, display_price: 'From +$35', option_group: null, sort_order: 1 },
+      { id: 'creature', label: 'Large animal / creature', price: 55, is_percentage: false, percentage: null, is_from: true, display_price: 'From +$55', option_group: null, sort_order: 2 },
+      { id: 'expression', label: 'Alternate expression', price: 20, is_percentage: false, percentage: null, is_from: true, display_price: '+$20–$35', option_group: null, sort_order: 3 },
+      { id: 'additional', label: 'Additional character', price: 80, is_percentage: false, percentage: null, is_from: true, display_price: 'From +$80', option_group: null, sort_order: 4 },
+      { id: 'nsfw1', label: 'NSFW art — 1 character', price: 35, is_percentage: false, percentage: null, is_from: true, display_price: 'From +$35', option_group: 'nsfw', sort_order: 5 },
+      { id: 'nsfw2', label: 'NSFW art — 2 characters', price: 55, is_percentage: false, percentage: null, is_from: true, display_price: 'From +$55', option_group: 'nsfw', sort_order: 6 },
+      { id: 'merch', label: 'Commercial merchandise licence', price: null, is_percentage: true, percentage: 50, is_from: false, display_price: '+50%', option_group: null, sort_order: 7 },
+      { id: 'rush', label: 'Rush commission', price: null, is_percentage: true, percentage: 30, is_from: true, display_price: '+25–40%', option_group: null, sort_order: 8 }
+    ]
   };
+  const GROUP_COPY = {
+    portrait: ['Portrait / Bust', 'Chest up'],
+    half: ['Half Body', 'Waist up'],
+    full: ['Full Body', 'Head to toe'],
+    scenebasic: ['Basic Background', 'Simple setting'],
+    scenedetail: ['Detailed Background', 'Developed setting']
+  };
+  const CATEGORY_COPY = {
+    character_art: ['Character Art', 'No background'],
+    illustrated_scene: ['Illustrated Scene', 'Character in a painted setting']
+  };
+  const CHAR_COPY = { 1: 'Solo Character', 2: 'Two Characters' };
+  const money = n => '$' + Number(n).toLocaleString('en-US');
+  let PRICE = PRICE_FALLBACK;
+  const calc = { category: 'character_art', group: 'portrait', chars: 1, extras: new Set() };
+
+  function parseType(t) {
+    const m = /^(.*?)(\d+)$/.exec(t.id);
+    return m ? { group: m[1], n: parseInt(m[2], 10) } : null;
+  }
+  function groupsFor(category) {
+    const out = [];
+    PRICE.types.filter(t => t.category === category).sort((a, b) => a.sort_order - b.sort_order).forEach(t => {
+      const p = parseType(t);
+      if (!p) return;
+      let g = out.find(x => x.group === p.group);
+      if (!g) { g = { group: p.group, counts: {} }; out.push(g); }
+      g.counts[p.n] = t;
+    });
+    return out;
+  }
+  function currentType() {
+    const g = groupsFor(calc.category).find(x => x.group === calc.group);
+    return g ? (g.counts[calc.chars] || g.counts[Object.keys(g.counts)[0]]) : null;
+  }
+  function optionButton(title, sub, selected, onClick) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'calc-option-btn' + (selected ? ' selected' : '');
+    b.setAttribute('role', 'radio');
+    b.setAttribute('aria-checked', String(selected));
+    const s = document.createElement('strong');
+    s.textContent = title;
+    const p = document.createElement('span');
+    p.className = 'subtext';
+    p.textContent = sub;
+    b.append(s, p);
+    b.addEventListener('click', onClick);
+    return b;
+  }
+  function extraPriceText(e) {
+    return e.display_price || (e.is_percentage ? '+' + Number(e.percentage) + '%' : '+' + money(e.price));
+  }
+
+  function renderExtras() {
+    const wrap = document.getElementById('calcExtras');
+    wrap.replaceChildren();
+    PRICE.extras.slice().sort((a, b) => a.sort_order - b.sort_order).forEach(e => {
+      const on = calc.extras.has(e.id);
+      const item = document.createElement('div');
+      item.className = 'calc-checkbox-item' + (on ? ' checked' : '');
+      item.tabIndex = 0;
+      item.setAttribute('role', 'checkbox');
+      item.setAttribute('aria-checked', String(on));
+      const label = document.createElement('div');
+      label.className = 'calc-checkbox-label';
+      const box = document.createElement('div');
+      box.className = 'calc-checkbox-custom';
+      box.textContent = '\u2713';
+      const name = document.createElement('span');
+      name.textContent = e.label;
+      label.append(box, name);
+      const price = document.createElement('div');
+      price.className = 'calc-checkbox-price';
+      price.textContent = extraPriceText(e);
+      item.append(label, price);
+      const toggle = () => {
+        if (calc.extras.has(e.id)) {
+          calc.extras.delete(e.id);
+        } else {
+          if (e.option_group) {
+            PRICE.extras.filter(x => x.option_group === e.option_group && x.id !== e.id).forEach(x => calc.extras.delete(x.id));
+          }
+          calc.extras.add(e.id);
+        }
+        renderExtras();
+        updateCalculatorUI();
+      };
+      item.addEventListener('click', toggle);
+      item.addEventListener('keydown', (ev) => {
+        if (ev.key === ' ' || ev.key === 'Enter') { ev.preventDefault(); toggle(); }
+      });
+      wrap.appendChild(item);
+    });
+  }
+
+  function renderCalc() {
+    const cats = [...new Set(PRICE.types.map(t => t.category))];
+    if (!cats.includes(calc.category)) calc.category = cats[0];
+
+    const catWrap = document.getElementById('calcCategory');
+    catWrap.replaceChildren();
+    cats.forEach(c => {
+      const copy = CATEGORY_COPY[c] || [c, ''];
+      catWrap.appendChild(optionButton(copy[0], copy[1], c === calc.category, () => {
+        calc.category = c;
+        calc.group = null;
+        renderCalc();
+      }));
+    });
+
+    const groups = groupsFor(calc.category);
+    if (!groups.find(g => g.group === calc.group)) calc.group = groups[0].group;
+    const g = groups.find(x => x.group === calc.group);
+    if (!g.counts[calc.chars]) calc.chars = parseInt(Object.keys(g.counts)[0], 10);
+
+    document.getElementById('calcFramingLabel').textContent =
+      calc.category === 'illustrated_scene' ? '2. Background' : '2. Size and framing';
+    const framing = document.getElementById('calcFraming');
+    framing.replaceChildren();
+    groups.forEach(grp => {
+      const copy = GROUP_COPY[grp.group] || [grp.group, ''];
+      const first = grp.counts[Math.min(...Object.keys(grp.counts).map(Number))];
+      framing.appendChild(optionButton(copy[0], copy[1] + ' \u00B7 from ' + money(first.base_price), grp.group === calc.group, () => {
+        calc.group = grp.group;
+        renderCalc();
+      }));
+    });
+
+    const chars = document.getElementById('calcChars');
+    chars.replaceChildren();
+    Object.keys(g.counts).map(Number).sort((a, b) => a - b).forEach(n => {
+      const t = g.counts[n];
+      chars.appendChild(optionButton(CHAR_COPY[n] || (n + ' Characters'), (t.is_estimate ? 'from ' : '') + money(t.base_price), n === calc.chars, () => {
+        calc.chars = n;
+        renderCalc();
+      }));
+    });
+
+    renderExtras();
+    updateCalculatorUI();
+  }
 
   function updateCalculatorUI() {
-    let subtotal = calcState.framingPrice + calcState.charExtra + calcState.bgPrice;
-    if (calcState.hasFamiliar) {
-      subtotal += 25;
-    }
+    const t = currentType();
+    if (!t) return;
+    const selected = PRICE.extras.filter(e => calc.extras.has(e.id)).sort((a, b) => a.sort_order - b.sort_order);
+    let sub = Number(t.base_price);
+    let estimate = !!t.is_estimate;
+    const lines = [{ name: t.label, amount: sub, first: true }];
 
-    let merchFee = 0;
-    if (calcState.hasMerch) {
-      merchFee = Math.round(subtotal * 0.50);
-    }
+    selected.filter(e => !e.is_percentage).forEach(e => {
+      sub += Number(e.price);
+      lines.push({ name: e.label, amount: Number(e.price) });
+      if (e.is_from) estimate = true;
+    });
+    let total = sub;
+    // Percentage extras (merch licence, rush) apply to the original quote, as on the price list.
+    selected.filter(e => e.is_percentage).forEach(e => {
+      const amt = Math.round(sub * Number(e.percentage) / 100);
+      total += amt;
+      lines.push({ name: e.label + ' (' + Number(e.percentage) + '%)', amount: amt });
+      if (e.is_from) estimate = true;
+    });
+    const deposit = Math.round(total * 0.5);
 
-    let rushFee = 0;
-    if (calcState.hasRush) {
-      rushFee = Math.round((subtotal + merchFee) * 0.30);
-    }
+    const rows = document.getElementById('receiptRows');
+    rows.replaceChildren();
+    lines.forEach(l => {
+      const row = document.createElement('div');
+      row.className = 'receipt-row' + (l.first ? ' bold' : '');
+      const a = document.createElement('span');
+      a.textContent = l.name;
+      const b = document.createElement('span');
+      b.textContent = (l.first ? '' : '+') + money(l.amount);
+      row.append(a, b);
+      rows.appendChild(row);
+    });
 
-    const total = subtotal + merchFee + rushFee;
-    const deposit = (total * 0.5).toFixed(2);
+    document.getElementById('receiptTotalVal').textContent = money(total);
+    document.getElementById('receiptDepositVal').textContent = deposit.toLocaleString('en-US');
+    document.getElementById('receiptEstNote').hidden = !estimate;
 
-    // Update Receipt Breakdown
-    document.getElementById('receiptBaseName').textContent = `${calcState.framingName} (${calcState.charCount} Char${calcState.charCount > 1 ? 's' : ''})`;
-    document.getElementById('receiptBasePrice').textContent = `$${calcState.framingPrice + calcState.charExtra}`;
-
-    const bgRow = document.getElementById('receiptBgRow');
-    if (calcState.bgPrice > 0) {
-      bgRow.style.display = 'flex';
-      document.getElementById('receiptBgName').textContent = calcState.bgName;
-      document.getElementById('receiptBgPrice').textContent = `+$${calcState.bgPrice}`;
-    } else {
-      bgRow.style.display = 'none';
-    }
-
-    const famRow = document.getElementById('receiptFamiliarRow');
-    famRow.style.display = calcState.hasFamiliar ? 'flex' : 'none';
-
-    const merchRow = document.getElementById('receiptMerchRow');
-    if (calcState.hasMerch) {
-      merchRow.style.display = 'flex';
-      document.getElementById('receiptMerchPrice').textContent = `+$${merchFee}`;
-    } else {
-      merchRow.style.display = 'none';
-    }
-
-    const rushRow = document.getElementById('receiptRushRow');
-    if (calcState.hasRush) {
-      rushRow.style.display = 'flex';
-      document.getElementById('receiptRushPrice').textContent = `+$${rushFee}`;
-    } else {
-      rushRow.style.display = 'none';
-    }
-
-    document.getElementById('receiptTotalVal').textContent = `$${total}`;
-    document.getElementById('receiptDepositVal').textContent = deposit;
-
-    // Update CTA button link with parameters for booking flow
     const bookBtn = document.getElementById('bookEstimateBtn');
     if (bookBtn) {
-      bookBtn.href = `/site/?type=${encodeURIComponent(calcState.framingType)}&chars=${calcState.charCount}&bg=${encodeURIComponent(calcState.bgType)}&merch=${calcState.hasMerch}&rush=${calcState.hasRush}&total=${total}`;
+      bookBtn.href = '/site/?type=' + encodeURIComponent(calc.group) + '&chars=' + calc.chars +
+        '&extras=' + encodeURIComponent([...calc.extras].join(','));
     }
   }
 
-  // Framing button clicks
-  document.querySelectorAll('[data-type]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('[data-type]').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      calcState.framingType = btn.getAttribute('data-type');
-      calcState.framingPrice = parseInt(btn.getAttribute('data-price'), 10);
-      calcState.framingName = btn.querySelector('strong').textContent;
-      updateCalculatorUI();
-    });
-  });
-
-  // Character count clicks
-  document.querySelectorAll('[data-chars]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('[data-chars]').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      calcState.charCount = parseInt(btn.getAttribute('data-chars'), 10);
-      calcState.charExtra = parseInt(btn.getAttribute('data-extra'), 10);
-      updateCalculatorUI();
-    });
-  });
-
-  // Background clicks
-  document.querySelectorAll('[data-bg]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('[data-bg]').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      calcState.bgType = btn.getAttribute('data-bg');
-      calcState.bgPrice = parseInt(btn.getAttribute('data-price'), 10);
-      calcState.bgName = btn.querySelector('strong').textContent;
-      updateCalculatorUI();
-    });
-  });
-
-  // Add-on checkboxes
-  document.querySelectorAll('.calc-checkbox-item').forEach(item => {
-    function toggleCheckbox() {
-      const isChecked = item.classList.toggle('checked');
-      item.setAttribute('aria-checked', String(isChecked));
-      const id = item.getAttribute('data-id');
-      if (id === 'familiar') calcState.hasFamiliar = isChecked;
-      if (id === 'merch') calcState.hasMerch = isChecked;
-      if (id === 'rush') calcState.hasRush = isChecked;
-      updateCalculatorUI();
-    }
-
-    item.addEventListener('click', toggleCheckbox);
-    item.addEventListener('keydown', (e) => {
-      if (e.key === ' ' || e.key === 'Enter') {
-        e.preventDefault();
-        toggleCheckbox();
+  // Fill every <b class="px" data-price="..."> from the live price list
+  function applyPriceSpans() {
+    document.querySelectorAll('[data-price]').forEach(el => {
+      const key = el.dataset.price;
+      let v = null;
+      if (key.startsWith('extra:')) {
+        const e = PRICE.extras.find(x => x.id === key.slice(6));
+        v = e ? e.price : null;
+      } else {
+        const t = PRICE.types.find(x => x.id === key);
+        v = t ? t.base_price : null;
       }
+      if (v != null) el.textContent = money(v);
     });
-  });
+  }
+
+  async function loadPrices() {
+    try {
+      if (!window.supabase || !window.SUPABASE_URL) return;
+      const sbPrices = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+      const [t, x] = await Promise.all([
+        sbPrices.from('commission_types').select('*').order('sort_order'),
+        sbPrices.from('extras').select('*').order('sort_order')
+      ]);
+      if (t.error || x.error || !t.data || !x.data || !t.data.length || !x.data.length) return;
+      PRICE = { types: t.data, extras: x.data };
+      renderCalc();
+      applyPriceSpans();
+    } catch (e) { console.warn('Using built-in price list', e); }
+  }
+
+  function initCalculator() {
+    renderCalc();
+    applyPriceSpans();
+    loadPrices();
+  }
 
   // Gallery Filter Tabs
   document.querySelectorAll('.gallery-tab-btn').forEach(tab => {
@@ -2291,7 +2425,7 @@
   });
 
   // Run initial calculation
-  updateCalculatorUI();
+  initCalculator();
 </script>
 
 </body>

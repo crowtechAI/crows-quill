@@ -786,7 +786,7 @@ function renderClients(wrap) {
       <div><div class="name">${esc(cl.name || 'Unknown')}</div><div class="sub">${esc(cl.email || '')}</div></div>
       <div class="sub">${esc(cl.book_title || '—')}</div>
       <div class="sub">${g.commissions.length} ${g.commissions.length === 1 ? 'job' : 'jobs'}</div>
-      <div class="sub">£${esc(total)}</div>
+      <div class="sub">$${esc(total)}</div>
       <div><span class="badge ${st}">${T_LABELS[st]}</span></div>`;
     const open = () => openClientPanel(g.id);
     row.addEventListener('click', open);
@@ -818,7 +818,7 @@ function testimonialBlockHtml(c) {
     actions = `<button class="btn-ghost t-toggle" data-tid="${esc(t.id)}" data-next="${t.status === 'published' ? 'hidden' : 'published'}">${t.status === 'published' ? 'Hide from homepage' : 'Show on homepage'}</button>`;
   }
   return `<div class="mini-card" data-block="${esc(c.id)}">
-      <div class="mc-title">${esc(labelFromType(c.commission_type))} · £${esc(c.total_price ?? '—')}</div>
+      <div class="mc-title">${esc(labelFromType(c.commission_type))} · $${esc(c.total_price ?? '—')}</div>
       <div class="t-status" style="margin-top:8px;">${status}</div>
       <div class="mini-actions t-actions">${actions}</div>
       <div class="panel-msg t-msg" role="status" aria-live="polite"></div>
@@ -870,7 +870,7 @@ function openClientPanel(clientId) {
         return `<div class="mini-card">
           <div class="mc-title">${esc(labelFromType(c.commission_type))} <span class="badge ${esc(c.status)}" style="margin-left:6px;">${esc(c.status.replace('_', ' '))}</span></div>
           <div class="mc-sub">${esc(c.client?.book_title || '')}${c.slot ? ' · Week of ' + fmtDate(c.slot.slot_date) : ''}</div>
-          <div class="kv"><span>Total</span><span>£${esc(c.total_price ?? '—')} (paid in full)</span></div>
+          <div class="kv"><span>Total</span><span>$${esc(c.total_price ?? '—')} (paid in full)</span></div>
           ${quote ? `<div class="kv"><span>Quote</span><span>${esc(quote.response)} · ${fmtDate(quote.sent_at)}</span></div>` : ''}
           ${contract ? `<div class="kv"><span>Contract</span><span>Signed by ${esc(contract.signature_name)} · ${fmtDate(contract.signed_at)}</span></div>` : ''}
           ${c.brief ? `<div class="brief-text">${esc(c.brief)}</div>` : ''}
