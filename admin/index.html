@@ -742,9 +742,9 @@ async function applyToSelection(action) {
 
 // ---------- Clients (resource centre) ----------
 // A "client" appears here once at least one of their commissions is approved
-// (accepted / in progress / delivered) AND fully paid.
+// (accepted / in progress / delivered) (approval means they've paid).
 const PAID_STATUSES = ['accepted', 'in_progress', 'delivered'];
-function isPaidApproved(c) { return PAID_STATUSES.includes(c.status) && c.balance_paid === true; }
+function isPaidApproved(c) { return PAID_STATUSES.includes(c.status); }
 function testimonialOf(c) { const t = c.testimonials; return Array.isArray(t) ? (t[0] || null) : (t || null); }
 
 function getClientGroups() {
@@ -769,7 +769,7 @@ const T_LABELS = { published:'Testimonial live', requested:'Requested', hidden:'
 function renderClients(wrap) {
   const groups = getClientGroups();
   if (!groups.length) {
-    wrap.innerHTML = '<p class="empty">No clients yet. A client appears here once a commission is approved and fully paid.</p>';
+    wrap.innerHTML = '<p class="empty">No clients yet. A client appears here as soon as a commission is approved.</p>';
     return;
   }
   wrap.innerHTML = '';
