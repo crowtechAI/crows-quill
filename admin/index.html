@@ -168,6 +168,26 @@
   .cal-actionbar.show { display:flex; }
   .cal-actionbar label { margin:0; font-size:12.5px; }
   .cal-actionbar input[type=number] { width:70px; padding:8px 10px; }
+
+  /* ---------- Clients (resource centre) ---------- */
+  .side-divider { height:1px; background:var(--line); margin:10px 6px; }
+  .client-row { grid-template-columns:1.5fr 1.1fr 0.5fr 0.7fr 0.9fr; }
+  .badge.published { background:rgba(110,143,107,0.3); color:#8fc78a; }
+  .badge.requested { background:rgba(201,160,95,0.18); color:var(--bronze-bright); }
+  .badge.hidden, .badge.notasked { background:rgba(148,141,163,0.2); color:var(--lilac-dim); }
+  .panel.wide { width:min(720px, 100vw); }
+  .panel a { color:var(--bronze-bright); }
+  .mini-card { padding:14px 16px; margin-top:10px; background:var(--ink); border:1px solid var(--line); border-radius:6px; }
+  .mini-card .mc-title { color:var(--parchment); font-size:14.5px; }
+  .mini-card .mc-sub { color:var(--lilac-dim); font-size:12.5px; margin-top:2px; }
+  .mini-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+  .mini-actions .btn, .mini-actions .btn-ghost { min-height:38px; padding:8px 14px; font-size:13px; }
+  .t-stars { color:var(--bronze-bright); letter-spacing:2px; font-size:15px; }
+  .t-quote { font-style:italic; color:var(--lilac); font-size:13.5px; line-height:1.6; margin-top:8px; white-space:pre-wrap; word-break:break-word; }
+  .note-meta { color:var(--lilac-dim); font-size:11.5px; margin-top:6px; }
+  .file-row .btn-ghost { min-height:34px; padding:6px 12px; font-size:12.5px; flex-shrink:0; margin-left:10px; }
+  .setup-hint { font-size:12.5px; color:var(--bronze-bright); background:rgba(201,160,95,.1); border:1px solid var(--line-gold); padding:10px 12px; border-radius:6px; margin-bottom:14px; }
+  @media (max-width:760px) { .client-row { grid-template-columns:1fr 1fr; } }
 </style>
 </head>
 <body>
@@ -206,6 +226,7 @@
 const sb = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 let allCommissions = [];
 let activeTab = 'all';
+let testimonialsReady = true;
 let activeView = 'commissions'; // 'commissions' | 'calendar'
 
 const TABS = [
@@ -216,6 +237,7 @@ const TABS = [
   { key:'in_progress', label:'In progress' },
   { key:'delivered', label:'Delivered' },
   { key:'declined', label:'Declined / cancelled' },
+  { key:'clients', label:'Clients', divider:true },
 ];
 
 // ---------- Auth ----------
@@ -259,6 +281,7 @@ function renderSidebar() {
   wrap.appendChild(divider);
 
   TABS.forEach(t => {
+    if (t.divider) { const d = document.createElement('div'); d.className = 'side-divider'; wrap.appendChild(d); }
     const btn = document.createElement('button');
     btn.className = 'tab' + (activeView === 'commissions' && t.key === activeTab ? ' active' : '');
     btn.innerHTML = `${t.label} <span class="count" id="count-${t.key}"></span>`;
@@ -275,10 +298,14 @@ function showView(view) {
 
 // ---------- Load & list ----------
 async function loadCommissions() {
-  const { data, error } = await sb
-    .from('commissions')
-    .select('*, client:clients(*), slot:slots(*), quotes(*), contracts(*), commission_files(*), commission_notes(*)')
-    .order('created_at', { ascending: false });
+  const BASE = '*, client:clients(*), slot:slots(*), quotes(*), contracts(*), commission_files(*), commission_notes(*)';
+  let { data, error } = await sb.from('commissions').select(BASE + ', testimonials(*)').order('created_at', { ascending: false });
+  testimonialsReady = !error;
+  if (error) {
+    // Testimonials migration not run yet: keep the dashboard working without it.
+    console.warn('Loading without testimonials:', error.message);
+    ({ data, error } = await sb.from('commissions').select(BASE).order('created_at', { ascending: false }));
+  }
   if (error) { document.getElementById('listWrap').innerHTML = '<p class="empty">Could not load commissions.</p>'; console.error(error); return; }
   allCommissions = data || [];
   updateCounts();
@@ -289,7 +316,8 @@ function updateCounts() {
   TABS.forEach(t => {
     const el = document.getElementById('count-' + t.key);
     if (!el) return;
-    const n = t.key === 'all' ? allCommissions.length
+    const n = t.key === 'clients' ? getClientGroups().length
+      : t.key === 'all' ? allCommissions.length
       : t.key === 'declined' ? allCommissions.filter(c => c.status === 'declined' || c.status === 'cancelled').length
       : allCommissions.filter(c => c.status === t.key).length;
     el.textContent = n;
@@ -298,6 +326,7 @@ function updateCounts() {
 
 function renderList() {
   const wrap = document.getElementById('listWrap');
+  if (activeTab === 'clients') { renderClients(wrap); return; }
   let items = allCommissions;
   if (activeTab === 'declined') items = items.filter(c => c.status === 'declined' || c.status === 'cancelled');
   else if (activeTab !== 'all') items = items.filter(c => c.status === activeTab);
@@ -342,6 +371,7 @@ function labelFromType(id) {
 function openPanel(c) {
   const overlay = document.getElementById('overlay');
   const panel = document.getElementById('panel');
+  panel.classList.remove('wide');
   const quote = c.quotes?.[0];
   const contract = c.contracts?.[0];
   const slotDate = c.slot ? new Date(c.slot.slot_date).toLocaleDateString('en-GB', { day:'numeric', month:'long' }) : '—';
@@ -708,6 +738,283 @@ async function applyToSelection(action) {
   btn.disabled = false; btn.textContent = origText;
   clearSelection();
   renderCalendar();
+}
+
+// ---------- Clients (resource centre) ----------
+// A "client" appears here once at least one of their commissions is approved
+// (accepted / in progress / delivered) AND fully paid.
+const PAID_STATUSES = ['accepted', 'in_progress', 'delivered'];
+function isPaidApproved(c) { return PAID_STATUSES.includes(c.status) && c.balance_paid === true; }
+function testimonialOf(c) { const t = c.testimonials; return Array.isArray(t) ? (t[0] || null) : (t || null); }
+
+function getClientGroups() {
+  const map = new Map();
+  allCommissions.filter(isPaidApproved).forEach(c => {
+    const id = c.client?.id || c.client_id;
+    if (!map.has(id)) map.set(id, { id, client: c.client, commissions: [] });
+    map.get(id).commissions.push(c);
+  });
+  return [...map.values()];
+}
+
+function groupTestimonialState(g) {
+  const ts = g.commissions.map(testimonialOf).filter(Boolean);
+  if (ts.some(t => t.status === 'published')) return 'published';
+  if (ts.some(t => t.status === 'requested')) return 'requested';
+  if (ts.some(t => t.status === 'hidden')) return 'hidden';
+  return 'notasked';
+}
+const T_LABELS = { published:'Testimonial live', requested:'Requested', hidden:'Hidden', notasked:'Not asked' };
+
+function renderClients(wrap) {
+  const groups = getClientGroups();
+  if (!groups.length) {
+    wrap.innerHTML = '<p class="empty">No clients yet. A client appears here once a commission is approved and fully paid.</p>';
+    return;
+  }
+  wrap.innerHTML = '';
+  groups.forEach(g => {
+    const cl = g.client || {};
+    const total = g.commissions.reduce((n, c) => n + (Number(c.total_price) || 0), 0);
+    const st = groupTestimonialState(g);
+    const row = document.createElement('div');
+    row.className = 'list-row client-row';
+    row.setAttribute('role', 'button');
+    row.setAttribute('tabindex', '0');
+    row.setAttribute('aria-label', `Open client resource centre for ${cl.name || 'Unknown'}`);
+    row.innerHTML = `
+      <div><div class="name">${esc(cl.name || 'Unknown')}</div><div class="sub">${esc(cl.email || '')}</div></div>
+      <div class="sub">${esc(cl.book_title || '—')}</div>
+      <div class="sub">${g.commissions.length} ${g.commissions.length === 1 ? 'job' : 'jobs'}</div>
+      <div class="sub">£${esc(total)}</div>
+      <div><span class="badge ${st}">${T_LABELS[st]}</span></div>`;
+    const open = () => openClientPanel(g.id);
+    row.addEventListener('click', open);
+    row.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+    wrap.appendChild(row);
+  });
+}
+
+function starsText(n) {
+  return `<span class="t-stars" role="img" aria-label="${esc(n)} out of 5 stars">${'★'.repeat(n)}${'☆'.repeat(5 - n)}</span>`;
+}
+function fileDisplayName(path) { return String(path || '').split('/').pop().replace(/^\d{10,}-/, ''); }
+const fmtDate = (d) => new Date(d).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+
+function testimonialBlockHtml(c) {
+  const t = testimonialOf(c);
+  const submitted = t && t.submitted_at;
+  let status = '<span class="link-status" style="margin:0;">No request sent yet.</span>';
+  let actions = `<button class="btn t-send" data-cid="${esc(c.id)}">Send for testimonial</button>
+                 <button class="btn-ghost t-copy" data-cid="${esc(c.id)}">Copy link</button>`;
+  if (t && !submitted) {
+    status = `<span class="link-status" style="margin:0;">Requested ${fmtDate(t.requested_at)}${t.emailed_at ? ' (emailed)' : ' (link only)'} — waiting for the client.</span>`;
+    actions = `<button class="btn-ghost t-send" data-cid="${esc(c.id)}">Resend email</button>
+               <button class="btn-ghost t-copy" data-cid="${esc(c.id)}">Copy link</button>`;
+  } else if (submitted) {
+    status = `${starsText(t.rating)} <span class="link-status" style="margin:0 0 0 8px;">${t.status === 'published' ? 'Live on the homepage' : 'Hidden from the homepage'} · ${fmtDate(t.submitted_at)}</span>
+      <div class="t-quote">“${esc(t.body)}”</div>
+      <div class="note-meta">— ${esc(t.display_name)}${t.display_title ? ', ' + esc(t.display_title) : ''}</div>`;
+    actions = `<button class="btn-ghost t-toggle" data-tid="${esc(t.id)}" data-next="${t.status === 'published' ? 'hidden' : 'published'}">${t.status === 'published' ? 'Hide from homepage' : 'Show on homepage'}</button>`;
+  }
+  return `<div class="mini-card" data-block="${esc(c.id)}">
+      <div class="mc-title">${esc(labelFromType(c.commission_type))} · £${esc(c.total_price ?? '—')}</div>
+      <div class="t-status" style="margin-top:8px;">${status}</div>
+      <div class="mini-actions t-actions">${actions}</div>
+      <div class="panel-msg t-msg" role="status" aria-live="polite"></div>
+    </div>`;
+}
+
+async function ensureTestimonialRow(commissionId) {
+  let { data: t } = await sb.from('testimonials').select('*').eq('commission_id', commissionId).maybeSingle();
+  if (!t) {
+    const ins = await sb.from('testimonials').insert({ commission_id: commissionId }).select('*').single();
+    if (ins.error) throw ins.error;
+    t = ins.data;
+  }
+  return t;
+}
+const testimonialLink = (t) => `${location.origin}/site/testimonial.html?t=${t.token}`;
+
+function openClientPanel(clientId) {
+  const g = getClientGroups().find(x => x.id === clientId);
+  if (!g) return;
+  const overlay = document.getElementById('overlay');
+  const panel = document.getElementById('panel');
+  panel.classList.add('wide');
+  const cl = g.client || {};
+  const comms = g.commissions;
+  const files = comms.flatMap(c => (c.commission_files || []).map(f => ({ ...f, _c: c })))
+    .sort((a, b) => new Date(b.uploaded_at || 0) - new Date(a.uploaded_at || 0));
+  const notes = comms.flatMap(c => (c.commission_notes || []).map(n => ({ ...n, _c: c })))
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  const since = fmtDate(comms[comms.length - 1].created_at);
+
+  panel.innerHTML = `
+    <button class="close" id="closePanel" aria-label="Close panel">×</button>
+    <h2>${esc(cl.name || 'Unknown')}</h2>
+    <div class="panel-email"><a href="mailto:${esc(cl.email || '')}">${esc(cl.email || '')}</a></div>
+    <div class="panel-head"><span class="badge delivered">Paid client</span><span class="link-status" style="margin:0;">Since ${since}</span></div>
+
+    <div class="panel-section">
+      <h3>Testimonial</h3>
+      ${testimonialsReady ? '' : '<div class="setup-hint">Testimonials aren’t set up yet. Run the <code>20261001100000_testimonials.sql</code> migration in Supabase, then refresh.</div>'}
+      <p class="link-status" style="margin:0 0 4px;">Sends the client a private link to rate their experience and write a testimonial. It appears on your homepage as soon as they submit.</p>
+      ${comms.map(testimonialBlockHtml).join('')}
+    </div>
+
+    <div class="panel-section">
+      <h3>Commissions (${comms.length})</h3>
+      ${comms.map(c => {
+        const quote = c.quotes?.[0], contract = c.contracts?.[0];
+        return `<div class="mini-card">
+          <div class="mc-title">${esc(labelFromType(c.commission_type))} <span class="badge ${esc(c.status)}" style="margin-left:6px;">${esc(c.status.replace('_', ' '))}</span></div>
+          <div class="mc-sub">${esc(c.client?.book_title || '')}${c.slot ? ' · Week of ' + fmtDate(c.slot.slot_date) : ''}</div>
+          <div class="kv"><span>Total</span><span>£${esc(c.total_price ?? '—')} (paid in full)</span></div>
+          ${quote ? `<div class="kv"><span>Quote</span><span>${esc(quote.response)} · ${fmtDate(quote.sent_at)}</span></div>` : ''}
+          ${contract ? `<div class="kv"><span>Contract</span><span>Signed by ${esc(contract.signature_name)} · ${fmtDate(contract.signed_at)}</span></div>` : ''}
+          ${c.brief ? `<div class="brief-text">${esc(c.brief)}</div>` : ''}
+          <div class="mini-actions"><button class="btn-ghost open-commission" data-cid="${esc(c.id)}">Open full commission</button></div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div class="panel-section">
+      <h3>Files (${files.length})</h3>
+      <div id="clientFiles">
+        ${files.map((f, i) => `<div class="file-row"><span>${esc(fileDisplayName(f.file_path))} <span style="color:var(--lilac-dim);">(${esc(f.file_type)} · ${esc(f.uploaded_by || 'artist')})</span></span><button class="btn-ghost f-dl" data-i="${i}">Download</button></div>`).join('')
+          || '<p class="link-status" style="margin:0;">No files yet.</p>'}
+      </div>
+      <div style="margin-top:14px;">
+        ${comms.length > 1 ? `<label for="cUploadFor">Add to commission</label><select id="cUploadFor" style="margin-bottom:8px;">${comms.map(c => `<option value="${esc(c.id)}">${esc(labelFromType(c.commission_type))} · ${fmtDate(c.created_at)}</option>`).join('')}</select>` : ''}
+        <label for="cUploadType">Add a file</label>
+        <select id="cUploadType" style="margin-bottom:8px;">
+          <option value="reference">Reference</option><option value="sketch">Sketch</option>
+          <option value="final_delivery">Final delivery</option><option value="other">Other</option>
+        </select>
+        <input type="file" id="cUploadInput">
+        <button class="btn-ghost" id="cUploadBtn" style="margin-top:8px;">Upload</button>
+        <div class="panel-msg" id="cUploadMsg" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <h3>Notes (${notes.length})</h3>
+      <div id="clientNotes">
+        ${notes.map(n => `<div class="brief-text">${esc(n.note)}<div class="note-meta">${new Date(n.created_at).toLocaleString('en-GB')} — ${n.created_by === 'artist' ? 'You' : 'Client'}</div></div>`).join('')
+          || '<p class="link-status" style="margin:0;">No notes yet.</p>'}
+      </div>
+      <div style="margin-top:14px;">
+        <label for="cNoteInput">Add a private note</label>
+        <textarea id="cNoteInput" rows="3" maxlength="5000" placeholder="e.g. Prefers warm palettes, wants a sequel cover in the spring."></textarea>
+        ${comms.length > 1 ? `<select id="cNoteFor" style="margin-top:8px;" aria-label="Attach note to commission">${comms.map(c => `<option value="${esc(c.id)}">${esc(labelFromType(c.commission_type))} · ${fmtDate(c.created_at)}</option>`).join('')}</select>` : ''}
+        <button class="btn-ghost" id="cNoteBtn" style="margin-top:8px;">Save note</button>
+        <div class="panel-msg" id="cNoteMsg" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+  `;
+
+  const reopen = async () => { await loadCommissions(); openClientPanel(clientId); };
+  const flash = (el, kind, text) => { el.className = 'panel-msg ' + kind; el.textContent = text; };
+
+  document.getElementById('closePanel').addEventListener('click', () => overlay.classList.remove('show'));
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.classList.remove('show'); };
+
+  panel.querySelectorAll('.open-commission').forEach(b => b.addEventListener('click', () => {
+    const c = allCommissions.find(x => x.id === b.dataset.cid); if (c) openPanel(c);
+  }));
+
+  panel.querySelectorAll('.t-send').forEach(btn => btn.addEventListener('click', async () => {
+    const block = btn.closest('[data-block]');
+    const msg = block.querySelector('.t-msg');
+    const label = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Sending…';
+    msg.className = 'panel-msg'; msg.innerHTML = '';
+    const fail = (text) => { flash(msg, 'err', `Could not send — ${text}`); btn.disabled = false; btn.textContent = label; };
+
+    const { data, error } = await sb.functions.invoke('send-testimonial-request', { body: { commission_id: btn.dataset.cid } });
+    if (error) {
+      let detail = error.message;
+      try { const b = await error.context.json(); if (b?.error) detail = b.error; } catch (_) {}
+      return fail(detail);
+    }
+    if (data?.error) return fail(data.error);
+
+    if (data?.emailed) {
+      flash(msg, 'ok', 'Testimonial request emailed to the client.');
+    } else {
+      msg.className = 'panel-msg warn';
+      msg.innerHTML = `Link created but not emailed${data?.emailError ? ' (' + esc(data.emailError) + ')' : ''}. Copy it and send it yourself:
+        <div class="copy-row"><input type="text" readonly value="${esc(data?.url || '')}" aria-label="Testimonial link"><button class="btn-ghost">Copy</button></div>`;
+      const input = msg.querySelector('input');
+      msg.querySelector('button').addEventListener('click', async (e) => {
+        try { await navigator.clipboard.writeText(data.url); e.target.textContent = 'Copied'; } catch (_) { input.select(); }
+      });
+    }
+    block.querySelector('.t-status').innerHTML = `<span class="link-status" style="margin:0;">Requested just now${data?.emailed ? ' (emailed)' : ' (link only)'} — waiting for the client.</span>`;
+    btn.disabled = false; btn.textContent = 'Resend email';
+    loadCommissions();
+  }));
+
+  panel.querySelectorAll('.t-copy').forEach(btn => btn.addEventListener('click', async () => {
+    const msg = btn.closest('[data-block]').querySelector('.t-msg');
+    try {
+      const t = await ensureTestimonialRow(btn.dataset.cid);
+      if (t.submitted_at) return flash(msg, 'warn', 'This client has already submitted a testimonial.');
+      const url = testimonialLink(t);
+      try { await navigator.clipboard.writeText(url); flash(msg, 'ok', 'Link copied. Send it to the client however you like.'); }
+      catch (_) { msg.className = 'panel-msg warn'; msg.innerHTML = `Copy this link:<div class="copy-row"><input type="text" readonly value="${esc(url)}" aria-label="Testimonial link"></div>`; msg.querySelector('input').select(); }
+      loadCommissions();
+    } catch (e) { console.error(e); flash(msg, 'err', testimonialsReady ? 'Could not create the link.' : 'Run the testimonials migration first.'); }
+  }));
+
+  panel.querySelectorAll('.t-toggle').forEach(btn => btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    const { error } = await sb.from('testimonials').update({ status: btn.dataset.next, updated_at: new Date().toISOString() }).eq('id', btn.dataset.tid);
+    if (error) { console.error(error); btn.disabled = false; return; }
+    reopen();
+  }));
+
+  panel.querySelectorAll('.f-dl').forEach(btn => btn.addEventListener('click', async () => {
+    const f = files[Number(btn.dataset.i)];
+    btn.disabled = true;
+    const { data, error } = await sb.storage.from('commission-files').createSignedUrl(f.file_path, 300);
+    btn.disabled = false;
+    if (error || !data?.signedUrl) { console.error(error); btn.textContent = 'Failed'; return; }
+    window.open(data.signedUrl, '_blank', 'noopener');
+  }));
+
+  document.getElementById('cUploadBtn').addEventListener('click', async () => {
+    const input = document.getElementById('cUploadInput');
+    const msg = document.getElementById('cUploadMsg');
+    if (!input.files.length) return flash(msg, 'warn', 'Choose a file first.');
+    const file = input.files[0];
+    const cid = document.getElementById('cUploadFor')?.value || comms[0].id;
+    const type = document.getElementById('cUploadType').value;
+    const path = `${cid}/${Date.now()}-${file.name}`;
+    const btn = document.getElementById('cUploadBtn');
+    btn.disabled = true; btn.textContent = 'Uploading…';
+    const { error: upErr } = await sb.storage.from('commission-files').upload(path, file);
+    if (upErr) { console.error(upErr); btn.disabled = false; btn.textContent = 'Upload'; return flash(msg, 'err', 'Upload failed.'); }
+    const { error: dbErr } = await sb.from('commission_files').insert({ commission_id: cid, file_path: path, file_type: type, uploaded_by: 'artist' });
+    if (dbErr) { console.error(dbErr); btn.disabled = false; btn.textContent = 'Upload'; return flash(msg, 'err', 'File uploaded but could not be recorded.'); }
+    reopen();
+  });
+
+  document.getElementById('cNoteBtn').addEventListener('click', async () => {
+    const ta = document.getElementById('cNoteInput');
+    const msg = document.getElementById('cNoteMsg');
+    const note = ta.value.trim();
+    if (!note) return flash(msg, 'warn', 'Write a note first.');
+    const cid = document.getElementById('cNoteFor')?.value || comms[0].id;
+    const btn = document.getElementById('cNoteBtn');
+    btn.disabled = true;
+    const { error } = await sb.from('commission_notes').insert({ commission_id: cid, note, created_by: 'artist' });
+    if (error) { console.error(error); btn.disabled = false; return flash(msg, 'err', 'Could not save the note.'); }
+    reopen();
+  });
+
+  overlay.classList.add('show');
 }
 
 // initial check

@@ -59,6 +59,7 @@
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  [hidden] { display: none !important; }
   html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
   
   body {
@@ -1122,6 +1123,11 @@
     font-weight: 600;
     display: block;
   }
+  .proof-author span { display: block; margin-top: 2px; }
+  @media (min-width: 961px) {
+    .proof-grid.n1 { grid-template-columns: minmax(0, 480px); justify-content: center; }
+    .proof-grid.n2 { grid-template-columns: repeat(2, minmax(0, 420px)); justify-content: center; }
+  }
 
   /* Licensing Matrix */
   .licensing-grid {
@@ -1340,6 +1346,7 @@
         <a class="nav-link" href="#calculator" data-section="calculator">Quote Calculator</a>
         <a class="nav-link" href="#pricing" data-section="pricing">Pricing</a>
         <a class="nav-link" href="#process" data-section="process">Process</a>
+        <a class="nav-link" href="#reviews" data-section="reviews" id="navReviews" hidden>Reviews</a>
         <a class="nav-link" href="#licensing" data-section="licensing">Licensing</a>
         <a class="nav-link" href="#faq" data-section="faq">FAQ</a>
       </div>
@@ -1378,6 +1385,7 @@
     <a href="#calculator">Quote Calculator</a>
     <a href="#pricing">Pricing &amp; Tiers</a>
     <a href="#process">Process</a>
+    <a href="#reviews" id="navReviewsMobile" hidden>Reviews</a>
     <a href="#licensing">Licensing</a>
     <a href="#faq">FAQ</a>
     <div class="drawer-section-label">Account</div>
@@ -1836,71 +1844,20 @@
   </div>
 </section>
 
-<!-- REMOVE_START
-<section id="reviews">
+<!-- Testimonials: filled live from Supabase. Stays hidden until there is at least one real testimonial. -->
+<section id="reviews" hidden>
   <div class="wrap">
     <div class="section-header text-center">
       <div class="section-kicker">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         <span>Author Reviews</span>
       </div>
-      <h2 class="section-title">Trusted By Dark Fantasy Writers</h2>
-      <p class="section-subtitle">Read how indie creators brought their fictional worlds out of their manuscripts.</p>
+      <h2 class="section-title">Kind Words From Authors</h2>
+      <p class="section-subtitle">Real words from authors whose characters now have faces.</p>
     </div>
-
-    <div class="proof-grid">
-      <div class="proof-card">
-        <div>
-          <div class="proof-stars" aria-label="5 out of 5 stars">
-            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-          </div>
-          <p class="proof-quote">&ldquo;Nailed my main character's scar and the exact shade of moody gothic lighting I described — approved the first sketch with zero notes.&rdquo;</p>
-        </div>
-        <div class="proof-author">
-          <strong>R. Ashworth</strong>
-          <span>Author of The Bone Weaver Trilogy</span>
-        </div>
-      </div>
-
-      <div class="proof-card">
-        <div>
-          <div class="proof-stars" aria-label="5 out of 5 stars">
-            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-          </div>
-          <p class="proof-quote">&ldquo;The instant quote and fixed timeline made planning my book launch effortless. The art drove 400+ pre-orders in the first 48 hours.&rdquo;</p>
-        </div>
-        <div class="proof-author">
-          <strong>J. Calloway</strong>
-          <span>Romantasy Bestseller</span>
-        </div>
-      </div>
-
-      <div class="proof-card">
-        <div>
-          <div class="proof-stars" aria-label="5 out of 5 stars">
-            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-          </div>
-          <p class="proof-quote">&ldquo;The licensing terms are crystal clear. We added merchandise rights for special edition art cards with zero back-and-forth.&rdquo;</p>
-        </div>
-        <div class="proof-author">
-          <strong>M. Serrano</strong>
-          <span>Editorial Lead, Obsidian Press</span>
-        </div>
-      </div>
-    </div>
-REMOVE_END -->
+    <div class="proof-grid" id="proofGrid"></div>
+  </div>
+</section>
 
 <!-- Author Licensing Clarity -->
 <section id="licensing">
@@ -2050,6 +2007,64 @@ REMOVE_END -->
     </div>
   </div>
 </footer>
+
+<!-- Testimonials feed -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script>
+  (async function loadTestimonials() {
+    try {
+      if (!window.supabase || !window.SUPABASE_URL) return;
+      const sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+      const { data, error } = await sb.rpc('get_public_testimonials', { p_limit: 9 });
+      if (error || !Array.isArray(data) || !data.length) return; // none yet: section stays hidden
+
+      const grid = document.getElementById('proofGrid');
+      const NS = 'http://www.w3.org/2000/svg';
+      data.forEach(t => {
+        const card = document.createElement('figure');
+        card.className = 'proof-card';
+        const body = document.createElement('div');
+        const stars = document.createElement('div');
+        stars.className = 'proof-stars';
+        stars.setAttribute('role', 'img');
+        stars.setAttribute('aria-label', t.rating + ' out of 5 stars');
+        for (let i = 0; i < t.rating; i++) {
+          const svg = document.createElementNS(NS, 'svg');
+          svg.setAttribute('viewBox', '0 0 24 24');
+          svg.setAttribute('fill', 'currentColor');
+          svg.setAttribute('aria-hidden', 'true');
+          const poly = document.createElementNS(NS, 'polygon');
+          poly.setAttribute('points', '12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2');
+          svg.appendChild(poly);
+          stars.appendChild(svg);
+        }
+        const quote = document.createElement('blockquote');
+        quote.className = 'proof-quote';
+        quote.textContent = '\u201C' + t.body + '\u201D';   // textContent: never inject client text as HTML
+        body.append(stars, quote);
+
+        const author = document.createElement('figcaption');
+        author.className = 'proof-author';
+        const name = document.createElement('strong');
+        name.textContent = t.display_name;
+        author.appendChild(name);
+        if (t.display_title) {
+          const sub = document.createElement('span');
+          sub.textContent = t.display_title;
+          author.appendChild(sub);
+        }
+        card.append(body, author);
+        grid.appendChild(card);
+      });
+
+      if (data.length < 3) grid.classList.add('n' + data.length);
+      document.getElementById('reviews').hidden = false;
+      document.getElementById('navReviews').hidden = false;
+      document.getElementById('navReviewsMobile').hidden = false;
+    } catch (e) { console.warn('Testimonials unavailable', e); }
+  })();
+</script>
 
 <!-- Interactive Calculator & Navigation Script -->
 <script>

@@ -419,3 +419,6 @@ verify_jwt = false
 
 [functions.send-payment-link]
 verify_jwt = true
+
+[functions.send-testimonial-request]
+verify_jwt = true
