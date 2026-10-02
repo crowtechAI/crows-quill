@@ -1326,9 +1326,9 @@ function renderSlots() {
     const d = new Date(s.slot_date);
     const dateLabel = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
     
-    // Normal turnaround: ~14 days from slot start.
+    // Normal turnaround: ~5 weeks (35 days) from slot start.
     // Rush turnaround: priority fast-track ~7 days from slot start.
-    const estDays = isRushRequested ? 7 : 14;
+    const estDays = isRushRequested ? 7 : 35;
     const est = new Date(s.slot_date); est.setUTCDate(est.getUTCDate() + estDays);
     
     // Keep a few days spare so slow feedback doesn't push delivery past the deadline.
@@ -1457,7 +1457,7 @@ function renderSlots() {
       });
     }
   } else {
-    note.textContent = 'Showing start dates where the estimated finish (about two weeks later) lands at least 5 days before your date, so a slow round of feedback does not put it at risk.';
+    note.textContent = 'Showing start dates where the estimated finish (about five weeks later) lands at least 5 days before your date, so a slow round of feedback does not put it at risk.';
     if (rushBox) rushBox.innerHTML = '';
   }
 }
@@ -1740,7 +1740,7 @@ document.getElementById('acceptBtn').addEventListener('click', () => {
   let est = 'to be confirmed by the Artist';
   if (state.slotDate) {
     const d = new Date(state.slotDate);
-    d.setUTCDate(d.getUTCDate() + 14);
+    d.setUTCDate(d.getUTCDate() + 35);
     est = 'around ' + d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
   }
   document.getElementById('cEstimate').textContent = est;
