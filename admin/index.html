@@ -349,7 +349,11 @@ function renderList() {
     row.setAttribute('aria-label', `Open commission for ${name}, status ${c.status.replace('_',' ')}`);
     const slotDate = c.slot ? new Date(c.slot.slot_date).toLocaleDateString('en-GB', { day:'numeric', month:'short' }) : '—';
     row.innerHTML = `
-      <div><div class="name">${name}</div><div class="sub">${c.client?.book_title || ''}</div></div>
+      <div>
+        <div class="name">${name}</div>
+        <div class="sub">${c.client?.book_title || ''}</div>
+        <div style="font-family:monospace;font-size:11px;color:var(--bronze-bright);margin-top:2px;">REF: ${c.id.slice(0,8)}</div>
+      </div>
       <div class="sub">${labelFromType(c.commission_type)}</div>
       <div class="sub">${slotDate}</div>
       <div class="sub">$${c.total_price ?? '—'}</div>
@@ -404,6 +408,27 @@ function openPanel(c) {
         <div class="tile accent"><div class="k">Total</div><div class="v">${esc(money(c.total_price))}</div></div>
         <div class="tile"><div class="k">Deposit</div><div class="v">${esc(money(c.deposit_amount))}</div></div>
         <div class="tile"><div class="k">Slot</div><div class="v" style="font-size:18px;">${esc(slotDate)}</div></div>
+      </div>
+
+      <div class="panel-section" style="background:var(--ink-surface);border:1px solid var(--line-gold);border-radius:6px;padding:14px 16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <h3 style="margin:0;font-size:13.5px;color:var(--parchment);">Author Portal Access</h3>
+          <span style="font-size:11px;color:var(--lilac-dim);">Client lookup at /site/track.html</span>
+        </div>
+        <div class="kv">
+          <span>Commission Reference</span>
+          <span style="font-family:monospace;font-size:12.5px;color:var(--bronze-bright);font-weight:600;user-select:all;word-break:break-all;">${esc(c.id)}</span>
+        </div>
+        <div class="kv">
+          <span>Author Email</span>
+          <span style="color:var(--parchment);">${esc(c.client?.email || '—')}</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+          <button class="btn-ghost" id="copyRefIdBtn" type="button" style="font-size:12px;padding:6px 12px;">Copy Reference ID</button>
+          <button class="btn-ghost" id="copyTrackLinkBtn" type="button" style="font-size:12px;padding:6px 12px;">Copy Portal Link</button>
+          <a href="/site/track.html?cid=${esc(c.id)}&email=${encodeURIComponent(c.client?.email || '')}" target="_blank" class="btn" style="font-size:12px;padding:6px 12px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">Open Client Portal ↗</a>
+        </div>
+        <div id="portalCopyMsg" style="font-size:12px;color:var(--ok);margin-top:8px;display:none;"></div>
       </div>
 
       <div class="panel-section">
@@ -479,6 +504,33 @@ function openPanel(c) {
       <button class="btn" id="saveStatus">Save changes</button>
     </div>
   `;
+
+  const copyRefBtn = document.getElementById('copyRefIdBtn');
+  if (copyRefBtn) {
+    copyRefBtn.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(c.id); } catch(e){}
+      const msg = document.getElementById('portalCopyMsg');
+      if (msg) {
+        msg.textContent = 'Commission reference copied to clipboard ✓';
+        msg.style.display = 'block';
+        setTimeout(() => { msg.style.display = 'none'; }, 2200);
+      }
+    });
+  }
+
+  const copyTrackBtn = document.getElementById('copyTrackLinkBtn');
+  if (copyTrackBtn) {
+    copyTrackBtn.addEventListener('click', async () => {
+      const url = `${location.origin}/site/track.html?cid=${c.id}&email=${encodeURIComponent(c.client?.email || '')}`;
+      try { await navigator.clipboard.writeText(url); } catch(e){}
+      const msg = document.getElementById('portalCopyMsg');
+      if (msg) {
+        msg.textContent = 'Author portal link copied to clipboard ✓';
+        msg.style.display = 'block';
+        setTimeout(() => { msg.style.display = 'none'; }, 2200);
+      }
+    });
+  }
 
   document.getElementById('closePanel').addEventListener('click', () => overlay.classList.remove('show'));
 
@@ -975,7 +1027,9 @@ function openClientPanel(clientId) {
         return `<div class="mini-card">
           <div class="mc-title">${esc(labelFromType(c.commission_type))} <span class="badge ${esc(c.status)}" style="margin-left:6px;">${esc(c.status.replace('_', ' '))}</span></div>
           <div class="mc-sub">${esc(c.client?.book_title || '')}${c.slot ? ' · Week of ' + fmtDate(c.slot.slot_date) : ''}</div>
+          <div class="kv"><span>Reference</span><span style="font-family:monospace;font-size:12px;color:var(--bronze-bright);user-select:all;">${esc(c.id)}</span></div>
           <div class="kv"><span>Total</span><span>$${esc(c.total_price ?? '—')} (paid in full)</span></div>
+          <div style="margin-top:6px;"><a href="/site/track.html?cid=${esc(c.id)}&email=${encodeURIComponent(cl.email || '')}" target="_blank" style="font-size:12px;color:var(--bronze-bright);">Open Author Portal ↗</a></div>
           ${quote ? `<div class="kv"><span>Quote</span><span>${esc(quote.response)} · ${fmtDate(quote.sent_at)}</span></div>` : ''}
           ${contract ? `<div class="kv"><span>Contract</span><span>Signed by ${esc(contract.signature_name)} · ${fmtDate(contract.signed_at)}</span></div>` : ''}
           ${c.brief ? `<div class="brief-text">${esc(c.brief)}</div>` : ''}

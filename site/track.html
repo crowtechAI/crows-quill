@@ -99,7 +99,7 @@
   <div id="lookupView">
     <div class="kicker">Author Portal</div>
     <h2>Track Your Commission</h2>
-    <p class="lead">Enter the commission reference from your confirmation email and the email address you booked with.</p>
+    <p class="lead">Enter the commission reference (found on your reservation confirmation or provided by the studio) and the email address you booked with.</p>
 
     <div class="field">
       <label for="cid">Commission Reference</label>
@@ -150,6 +150,18 @@ const sb = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 let current = null;
 
 function money(n) { return n === null || n === undefined ? '—' : `$${n}`; }
+
+// Auto-fill and lookup if passed via URL (e.g. /site/track.html?cid=...&email=...)
+(function initFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const cid = params.get('cid');
+  const email = params.get('email');
+  if (cid) document.getElementById('cid').value = cid.trim();
+  if (email) document.getElementById('cemail').value = email.trim();
+  if (cid && email) {
+    setTimeout(() => { document.getElementById('lookupBtn').click(); }, 100);
+  }
+})();
 
 document.getElementById('lookupBtn').addEventListener('click', async () => {
   const cid = document.getElementById('cid').value.trim();

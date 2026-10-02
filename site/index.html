@@ -1117,10 +1117,23 @@
         <span style="color: var(--parchment-muted);">Deposit Due Now</span>
         <span id="sDeposit" style="color: var(--gold-bright); font-weight: 700; font-size: 18px;"></span>
       </div>
+
+      <div style="background:var(--ink-surface);border:1px solid var(--line-gold);border-radius:6px;padding:14px;margin-top:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:11.5px;font-weight:700;color:var(--gold-bright);text-transform:uppercase;letter-spacing:0.05em;">Your Commission Reference</span>
+          <span style="font-size:11px;color:var(--parchment-muted);">Save for Author Portal tracking</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <span id="sRef" style="font-family:monospace;font-size:13px;color:var(--parchment);font-weight:600;word-break:break-all;user-select:all;">—</span>
+          <button type="button" class="btn-ghost" id="copyConfirmRefBtn" style="padding:4px 10px;font-size:12px;white-space:nowrap;">Copy</button>
+        </div>
+        <div id="confirmCopyMsg" style="font-size:11.5px;color:var(--gold-bright);margin-top:4px;display:none;">Reference copied!</div>
+      </div>
     </div>
 
-    <div class="btn-row">
-      <a href="/" class="btn-ghost">Return to Studio Home</a>
+    <div class="btn-row" style="display:flex;gap:12px;flex-wrap:wrap;">
+      <a id="trackPortalLink" href="/site/track.html" class="btn" style="flex:1;justify-content:center;text-decoration:none;">Go to Author Portal &rarr;</a>
+      <a href="/" class="btn-ghost" style="flex:1;justify-content:center;text-decoration:none;">Return to Studio Home</a>
     </div>
   </section>
 
@@ -1765,6 +1778,24 @@ signBtn.addEventListener('click', async () => {
     document.getElementById('sType').textContent = state.typeLabel;
     document.getElementById('sTotal').textContent = `$${state.total}`;
     document.getElementById('sDeposit').textContent = `$${state.deposit}`;
+    document.getElementById('sRef').textContent = state.commissionId || '—';
+
+    const clientEmail = (document.getElementById('email') || {}).value || '';
+    const trackLink = document.getElementById('trackPortalLink');
+    if (trackLink && state.commissionId) {
+      trackLink.href = `/site/track.html?cid=${state.commissionId}&email=${encodeURIComponent(clientEmail)}`;
+    }
+    const copyRefBtn = document.getElementById('copyConfirmRefBtn');
+    if (copyRefBtn) {
+      copyRefBtn.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(state.commissionId); } catch(e){}
+        const msg = document.getElementById('confirmCopyMsg');
+        if (msg) {
+          msg.style.display = 'block';
+          setTimeout(() => { msg.style.display = 'none'; }, 2000);
+        }
+      });
+    }
 
     showStep('step4');
   } catch (e) {
