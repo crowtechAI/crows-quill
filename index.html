@@ -36,7 +36,7 @@
     
     --parchment: #f4efe6;
     --parchment-dim: #d5cbba;
-    --parchment-muted: #8d859b;
+    --parchment-muted: #a49cb2;
     --text-body: #cdc4d9;
     
     --line: rgba(205, 196, 217, 0.12);
@@ -399,7 +399,7 @@
   /* Hero Section */
   header.hero {
     position: relative;
-    padding: 84px 0 100px;
+    padding: 64px 0 72px;
     overflow: hidden;
   }
   .hero-grid {
@@ -502,7 +502,8 @@
   .hero-badges {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 18px;
+    align-items: start;
+    gap: 24px;
     padding-top: 28px;
     border-top: 1px solid var(--line);
   }
@@ -515,7 +516,10 @@
     line-height: 1.1;
   }
   .hero-badge-item span {
+    display: block;
+    margin-top: 6px;
     font-size: 12.5px;
+    line-height: 1.45;
     color: var(--parchment-muted);
   }
 
@@ -569,7 +573,7 @@
 
   /* Section Common Styling */
   section {
-    padding: 88px 0;
+    padding: 72px 0;
     position: relative;
   }
   section + section {
@@ -577,7 +581,7 @@
   }
   
   .section-header {
-    margin-bottom: 52px;
+    margin-bottom: 40px;
     text-align: left;
   }
   .section-header.text-center {
@@ -727,9 +731,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--gold-bright);
+    color: transparent;
     font-size: 13px;
     font-weight: 700;
+    flex-shrink: 0;
   }
   .calc-checkbox-item.checked .calc-checkbox-custom {
     background: var(--gold-bright);
@@ -1162,7 +1167,8 @@
   .licensing-text {
     font-size: 14px;
     color: var(--parchment-muted);
-    line-height: 1.6;
+    line-height: 1.65;
+    max-width: 72ch;
   }
 
   /* FAQ Accordion */
