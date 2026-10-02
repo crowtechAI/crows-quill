@@ -220,6 +220,7 @@
     <div class="main">
       <div id="listWrap"><p class="loading-msg">Loading commissions…</p></div>
       <div id="calendarWrap" style="display:none;"></div>
+      <div id="portfolioWrap" style="display:none;"></div>
     </div>
   </div>
 </div>
@@ -282,6 +283,12 @@ function renderSidebar() {
   calBtn.addEventListener('click', () => { activeView = 'calendar'; renderSidebar(); showView('calendar'); });
   wrap.appendChild(calBtn);
 
+  const pfBtn = document.createElement('button');
+  pfBtn.className = 'tab' + (activeView === 'portfolio' ? ' active' : '');
+  pfBtn.textContent = 'Portfolio';
+  pfBtn.addEventListener('click', () => { activeView = 'portfolio'; renderSidebar(); showView('portfolio'); });
+  wrap.appendChild(pfBtn);
+
   const divider = document.createElement('div');
   divider.style.cssText = 'height:1px;background:var(--line);margin:10px 4px 12px;';
   wrap.appendChild(divider);
@@ -299,7 +306,117 @@ function renderSidebar() {
 function showView(view) {
   document.getElementById('listWrap').style.display = view === 'commissions' ? 'block' : 'none';
   document.getElementById('calendarWrap').style.display = view === 'calendar' ? 'block' : 'none';
+  document.getElementById('portfolioWrap').style.display = view === 'portfolio' ? 'block' : 'none';
+  if (view === 'portfolio') renderPortfolioAdmin();
   if (view === 'calendar' && !calendarLoadedOnce) { calendarLoadedOnce = true; renderCalendar(); }
+}
+
+// ---------- Portfolio (homepage cards) ----------
+const PF_SECTIONS = { gallery: 'Selected work', commissions: 'Commissions' };
+let pfItems = [];
+
+async function renderPortfolioAdmin() {
+  const wrap = document.getElementById('portfolioWrap');
+  wrap.innerHTML = '<p class="loading-msg">Loading portfolio…</p>';
+  const { data, error } = await sb.from('portfolio_items').select('*').order('section').order('sort_order').order('created_at');
+  if (error) { wrap.innerHTML = '<p class="empty">Could not load the portfolio. Check the portfolio_items migration has been run.</p>'; console.error(error); return; }
+  pfItems = data || [];
+  const secOpts = cur => Object.entries(PF_SECTIONS).map(([k, v]) => `<option value="${k}"${cur === k ? ' selected' : ''}>${v}</option>`).join('');
+  const rowHtml = it => `
+    <div class="pf-row" data-id="${esc(it.id)}" style="border:1px solid var(--line);border-radius:6px;padding:14px;margin-bottom:14px;display:grid;grid-template-columns:120px 1fr;gap:16px;">
+      <div><img src="${esc(it.image_url)}" alt="" style="width:120px;height:120px;object-fit:cover;border-radius:4px;background:#14101d;"></div>
+      <div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="field"><label class="field-label">Card label</label><input data-f="label" value="${esc(it.label)}"></div>
+          <div class="field"><label class="field-label">Section</label><select data-f="section">${secOpts(it.section)}</select></div>
+          <div class="field"><label class="field-label">Made for (author / client)</label><input data-f="client_name" value="${esc(it.client_name || '')}" placeholder="e.g. L. Ann"></div>
+          <div class="field"><label class="field-label">Link (https://…)</label><input data-f="link_url" value="${esc(it.link_url || '')}" placeholder="Book page or author site"></div>
+          <div class="field"><label class="field-label">Order (lower shows first)</label><input data-f="sort_order" type="number" value="${esc(it.sort_order)}"></div>
+          <div class="field"><label class="field-label">Image focus (CSS, e.g. center 30%)</label><input data-f="image_position" value="${esc(it.image_position || 'center')}"></div>
+        </div>
+        <div class="field"><label class="field-label">Image description (for screen readers)</label><input data-f="alt_text" value="${esc(it.alt_text || '')}"></div>
+        <div class="field"><label class="field-label">Replace image</label><input type="file" accept="image/*" data-f="file"></div>
+        <label style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--lilac);margin-bottom:12px;"><input type="checkbox" data-f="published" style="width:auto;"${it.published ? ' checked' : ''}> Show on homepage</label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+          <button class="btn" data-act="save">Save</button>
+          <button class="btn-ghost" data-act="delete">Delete</button>
+          <span class="pf-msg" style="font-size:13px;color:var(--lilac-dim);"></span>
+        </div>
+      </div>
+    </div>`;
+  wrap.innerHTML = `
+    <h2 style="margin:0 0 6px;">Portfolio</h2>
+    <p style="color:var(--lilac-dim);font-size:14px;margin:0 0 18px;">Cards shown on the homepage. Add who the work was for and a link. Prices are not shown on these cards. Uploaded images are not watermarked automatically.</p>
+    <div style="border:1px dashed var(--line);border-radius:6px;padding:14px;margin-bottom:22px;">
+      <strong style="font-size:14px;">Add a piece</strong>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;" id="pfNew">
+        <div class="field"><label class="field-label">Card label</label><input data-n="label" value="Character Portrait"></div>
+        <div class="field"><label class="field-label">Section</label><select data-n="section">${secOpts('gallery')}</select></div>
+        <div class="field"><label class="field-label">Made for (author / client)</label><input data-n="client_name"></div>
+        <div class="field"><label class="field-label">Link (https://…)</label><input data-n="link_url"></div>
+        <div class="field" style="grid-column:1/-1;"><label class="field-label">Image description (for screen readers)</label><input data-n="alt_text"></div>
+        <div class="field" style="grid-column:1/-1;"><label class="field-label">Image</label><input type="file" accept="image/*" data-n="file"></div>
+      </div>
+      <button class="btn" id="pfAdd">Add to homepage</button> <span id="pfAddMsg" style="font-size:13px;color:var(--lilac-dim);margin-left:8px;"></span>
+    </div>
+    ${pfItems.length ? pfItems.map(rowHtml).join('') : '<p class="empty">No pieces yet.</p>'}`;
+
+  const cleanLink = v => { v = (v || '').trim(); if (!v) return null; if (!/^https?:\/\//i.test(v)) v = 'https://' + v; return v; };
+  const upload = async file => {
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error: upErr } = await sb.storage.from('portfolio').upload(path, file, { contentType: file.type, upsert: false });
+    if (upErr) throw upErr;
+    return sb.storage.from('portfolio').getPublicUrl(path).data.publicUrl;
+  };
+
+  document.getElementById('pfAdd').addEventListener('click', async () => {
+    const q = n => document.querySelector(`#pfNew [data-n="${n}"]`);
+    const msg = document.getElementById('pfAddMsg');
+    const file = q('file').files[0];
+    if (!file) { msg.textContent = 'Choose an image first.'; return; }
+    msg.textContent = 'Uploading…';
+    try {
+      const image_url = await upload(file);
+      const maxOrder = pfItems.reduce((m, i) => Math.max(m, i.sort_order || 0), 0);
+      const { error: insErr } = await sb.from('portfolio_items').insert({
+        label: q('label').value.trim() || 'Character Portrait', section: q('section').value,
+        client_name: q('client_name').value.trim() || null, link_url: cleanLink(q('link_url').value),
+        alt_text: q('alt_text').value.trim(), image_url, sort_order: maxOrder + 10
+      });
+      if (insErr) throw insErr;
+      renderPortfolioAdmin();
+    } catch (e) { console.error(e); msg.textContent = 'Could not add: ' + (e.message || 'error'); }
+  });
+
+  wrap.querySelectorAll('.pf-row').forEach(row => {
+    const id = row.dataset.id;
+    const f = n => row.querySelector(`[data-f="${n}"]`);
+    const msg = row.querySelector('.pf-msg');
+    row.querySelector('[data-act="save"]').addEventListener('click', async () => {
+      msg.textContent = 'Saving…';
+      try {
+        const patch = {
+          label: f('label').value.trim() || 'Character Portrait', section: f('section').value,
+          client_name: f('client_name').value.trim() || null, link_url: cleanLink(f('link_url').value),
+          sort_order: parseInt(f('sort_order').value, 10) || 0, image_position: f('image_position').value.trim() || 'center',
+          alt_text: f('alt_text').value.trim(), published: f('published').checked, updated_at: new Date().toISOString()
+        };
+        const file = f('file').files[0];
+        if (file) patch.image_url = await upload(file);
+        const { error: upErr } = await sb.from('portfolio_items').update(patch).eq('id', id);
+        if (upErr) throw upErr;
+        msg.textContent = 'Saved.';
+        if (file) renderPortfolioAdmin();
+      } catch (e) { console.error(e); msg.textContent = 'Could not save: ' + (e.message || 'error'); }
+    });
+    row.querySelector('[data-act="delete"]').addEventListener('click', async () => {
+      if (!confirm('Remove this piece from the homepage?')) return;
+      const { error: delErr } = await sb.from('portfolio_items').delete().eq('id', id);
+      if (delErr) { msg.textContent = 'Could not delete: ' + delErr.message; return; }
+      renderPortfolioAdmin();
+    });
+  });
 }
 
 // ---------- Load & list ----------

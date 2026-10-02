@@ -866,6 +866,8 @@
     flex-direction: column;
     position: relative;
   }
+  .gallery-for { font-size: 14px; color: var(--parchment-muted); }
+  .gallery-for b { color: var(--parchment); font-weight: 500; }
   .gallery-card:hover {
     border-color: var(--gold-bright);
     transform: translateY(-4px);
@@ -1634,10 +1636,6 @@
           <div>
             <a class="gallery-view" href="/images/gallery/portrait-new.jpg?v=wm1" target="_blank" rel="noopener">View full size &nearr;</a>
           </div>
-          <div class="gallery-footer">
-            <span class="gallery-price">From <b class="px" data-price="portrait1">$100</b></span>
-            <a href="/site/" class="gallery-link">Commission &rarr;</a>
-          </div>
         </div>
       </article>
 
@@ -1651,10 +1649,6 @@
           <div>
             <a class="gallery-view" href="/images/gallery/portrait-2.jpg?v=wm1" target="_blank" rel="noopener">View full size &nearr;</a>
           </div>
-          <div class="gallery-footer">
-            <span class="gallery-price">From <b class="px" data-price="portrait1">$100</b></span>
-            <a href="/site/" class="gallery-link">Commission &rarr;</a>
-          </div>
         </div>
       </article>
 
@@ -1666,10 +1660,6 @@
         <div class="gallery-content">
           <div>
             <a class="gallery-view" href="/images/gallery/portrait-3.jpg?v=wm1" target="_blank" rel="noopener">View full size &nearr;</a>
-          </div>
-          <div class="gallery-footer">
-            <span class="gallery-price">From <b class="px" data-price="portrait1">$100</b></span>
-            <a href="/site/" class="gallery-link">Commission &rarr;</a>
           </div>
         </div>
       </article>
@@ -1686,7 +1676,7 @@
         <span>Couples &amp; scenes</span>
       </div>
       <h2 class="section-title">Commissions</h2>
-      <p class="section-subtitle">Two-character art and painted scenes, each with its starting price.</p>
+      <p class="section-subtitle">Two-character art and painted scenes made for authors.</p>
     </div>
 
     <div class="gallery-grid gallery-grid-pair">
@@ -1700,10 +1690,6 @@
           <div>
             <a class="gallery-view" href="/images/gallery/romantasy-couple.jpg?v=wm1" target="_blank" rel="noopener">View full size &nearr;</a>
           </div>
-          <div class="gallery-footer">
-            <span class="gallery-price">From <b class="px" data-price="full2">$255</b></span>
-            <a href="/site/" class="gallery-link">Commission &rarr;</a>
-          </div>
         </div>
       </article>
 
@@ -1716,10 +1702,6 @@
         <div class="gallery-content">
           <div>
             <a class="gallery-view" href="/images/gallery/illustrated-scene.jpg?v=wm1" target="_blank" rel="noopener">View full size &nearr;</a>
-          </div>
-          <div class="gallery-footer">
-            <span class="gallery-price">From <b class="px" data-price="scenebasic2">$295</b></span>
-            <a href="/site/" class="gallery-link">Commission &rarr;</a>
           </div>
         </div>
       </article>
@@ -2297,6 +2279,41 @@
 <!-- Testimonials feed -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
+<script>
+(async function loadPortfolio() {
+  try {
+    if (!window.supabase || !window.SUPABASE_URL) return;
+    const sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    const { data, error } = await sb.from('portfolio_items').select('*').eq('published', true).order('sort_order').order('created_at');
+    if (error || !data || !data.length) return;
+    const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const safeUrl = u => /^https?:\/\//i.test(u || '') ? u : '';
+    const card = it => {
+      const link = safeUrl(it.link_url);
+      const footer = (it.client_name || link) ? `<div class="gallery-footer">
+            ${it.client_name ? `<span class="gallery-for">For <b>${esc(it.client_name)}</b></span>` : '<span></span>'}
+            ${link ? `<a href="${esc(link)}" class="gallery-link" target="_blank" rel="noopener">View &nearr;</a>` : ''}
+          </div>` : '';
+      return `<article class="gallery-card">
+        <div class="gallery-img-wrap">
+          <span class="gallery-tag">${esc(it.label)}</span>
+          <img src="${esc(it.image_url)}" alt="${esc(it.alt_text)}" loading="lazy" decoding="async" style="object-position: ${esc(it.image_position || 'center')};">
+        </div>
+        <div class="gallery-content">
+          <div><a class="gallery-view" href="${esc(it.image_url)}" target="_blank" rel="noopener">View full size &nearr;</a></div>
+          ${footer}
+        </div>
+      </article>`;
+    };
+    [['gallery', '#gallery .gallery-grid'], ['commissions', '#commissions .gallery-grid']].forEach(([section, sel]) => {
+      const items = data.filter(i => i.section === section);
+      const grid = document.querySelector(sel);
+      if (grid && items.length) grid.innerHTML = items.map(card).join('');
+    });
+  } catch (e) { console.warn('Portfolio load failed, using built-in cards', e); }
+})();
+</script>
+
 <script>
   (async function loadTestimonials() {
     try {
