@@ -742,9 +742,9 @@ async function applyToSelection(action) {
 
 // ---------- Clients (resource centre) ----------
 // A "client" appears here once at least one of their commissions is approved
-// (accepted / in progress / delivered) (approval means they've paid).
+// (accepted / in progress / delivered) AND their deposit has been paid.
 const PAID_STATUSES = ['accepted', 'in_progress', 'delivered'];
-function isPaidApproved(c) { return PAID_STATUSES.includes(c.status); }
+function isPaidApproved(c) { return !!c.deposit_paid && PAID_STATUSES.includes(c.status); }
 function testimonialOf(c) { const t = c.testimonials; return Array.isArray(t) ? (t[0] || null) : (t || null); }
 
 function getClientGroups() {
