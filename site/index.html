@@ -1331,13 +1331,17 @@ function renderSlots() {
     const estDays = isRushRequested ? 7 : 14;
     const est = new Date(s.slot_date); est.setUTCDate(est.getUTCDate() + estDays);
     
+    // Keep a few days spare so slow feedback doesn't push delivery past the deadline.
+    const DEADLINE_BUFFER_DAYS = 5;
+    const needByDate = needBy ? new Date(needBy + 'T00:00:00Z') : null;
+    if (needByDate) needByDate.setUTCDate(needByDate.getUTCDate() - DEADLINE_BUFFER_DAYS);
     let fits = false;
     if (!needBy) {
       fits = true;
     } else if (isRushRequested) {
-      fits = est <= new Date(needBy + 'T00:00:00Z');
+      fits = est <= needByDate;
     } else {
-      fits = !tooSoon && est <= new Date(needBy + 'T00:00:00Z');
+      fits = !tooSoon && est <= needByDate;
     }
 
     if (fits) anyFits = true;
@@ -1348,7 +1352,7 @@ function renderSlots() {
         ? (isRushRequested
           ? `${remaining} slot${remaining === 1 ? '' : 's'} &bull; Expedited finish by ${est.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`
           : `${remaining} slot${remaining === 1 ? '' : 's'} remaining`)
-        : 'Estimated finish is after your date');
+        : 'Too close to your date');
 
     el.setAttribute('aria-label', `${dateLabel}, ${remaining} slot${remaining === 1 ? '' : 's'} available` + (fits ? '' : ', too late for your date'));
     el.innerHTML = `<div class="d">${dateLabel}${isRushRequested && fits ? ' <span class="rush-badge-slot">⚡ Rush</span>' : ''}</div><div class="m">${statusNote}</div>`;
@@ -1453,7 +1457,7 @@ function renderSlots() {
       });
     }
   } else {
-    note.textContent = 'Showing weeks where the estimated finish (about two weeks after the slot starts) falls on or before your date. Estimates can move if feedback is late.';
+    note.textContent = 'Showing start dates where the estimated finish (about two weeks later) lands at least 5 days before your date, so a slow round of feedback doesn't put it at risk.';
     if (rushBox) rushBox.innerHTML = '';
   }
 }
