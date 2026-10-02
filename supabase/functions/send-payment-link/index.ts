@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
     if (!stripeKey) return json({ error: "STRIPE_SECRET_KEY is not set on the function" }, 500);
 
     // SITE_URL if set, otherwise the origin the admin page is served from.
-    const siteUrl = (Deno.env.get("SITE_URL") ?? req.headers.get("origin") ?? "").replace(/\/$/, "");
+    const siteUrl = (Deno.env.get("SITE_URL") ?? req.headers.get("origin") ?? "https://crows-quill.vercel.app").replace(/\/$/, "");
     if (!siteUrl) return json({ error: "SITE_URL is not set and the request had no Origin header" }, 500);
 
     const currency = (Deno.env.get("CURRENCY") ?? "usd").toLowerCase();
@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { commission_id } = await req.json();
+    const { commission_id, return_url, cancel_url, skip_email } = await req.json();
     if (!commission_id) return json({ error: "commission_id required" }, 400);
 
     const { data: c, error } = await admin
@@ -62,14 +62,18 @@ Deno.serve(async (req) => {
         quantity: 1,
       }],
       metadata: { commission_id: c.id, payment_kind: payingBalance ? "balance" : "deposit" },
-      success_url: `${siteUrl}/site/?paid=1`,
-      cancel_url: `${siteUrl}/site/?cancelled=1`,
+      success_url: return_url || `${siteUrl}/site/?paid=1`,
+      cancel_url: cancel_url || `${siteUrl}/site/?cancelled=1`,
     });
 
     await admin.from("commissions").update({
       stripe_checkout_session_id: session.id,
       deposit_link_sent_at: new Date().toISOString(),
     }).eq("id", commission_id);
+
+    if (skip_email) {
+      return json({ url: session.url, emailed: false });
+    }
 
     // Email is best-effort: if it fails the link is still returned (paymentUrl)
     // so the artist can copy it and send it manually.

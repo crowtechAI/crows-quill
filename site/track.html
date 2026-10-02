@@ -116,6 +116,38 @@
   <div id="statusView" style="display:none;">
     <div class="kicker">Author Portal</div>
     <h2 id="statusTitle">Your Commission</h2>
+
+    <div id="paidBanner" style="display:none;background:rgba(110,143,107,0.15);border:1px solid var(--ok);border-radius:var(--radius-md);padding:14px 18px;margin-bottom:20px;color:var(--parchment);">
+      <strong style="color:var(--ok);font-size:15px;display:flex;align-items:center;gap:6px;">✓ Payment Confirmed</strong>
+      <p style="margin:4px 0 0;font-size:13px;color:var(--parchment-dim);">Thank you! Your payment has been received via Stripe and your commission schedule is secured.</p>
+    </div>
+
+    <!-- Stripe Payment Card for unpaid deposits/balances -->
+    <div id="paymentActionCard" class="card" style="display:none;background:linear-gradient(180deg, rgba(30,22,38,0.92) 0%, rgba(18,14,24,0.95) 100%);border:1px solid var(--gold);margin-bottom:20px;padding:22px 24px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+        <span id="payTag" style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold-bright);background:rgba(201,168,76,0.12);padding:3px 9px;border-radius:4px;border:1px solid var(--line-gold);">Deposit Due</span>
+        <span style="font-size:12px;color:var(--parchment-muted);">Secure 256-bit Stripe Checkout</span>
+      </div>
+      <h3 id="payTitle" style="font-size:20px;color:var(--parchment);margin:0 0 6px;">Deposit Payment Due</h3>
+      <p id="payDesc" style="font-size:13.5px;color:var(--parchment-dim);margin:0 0 16px;line-height:1.5;">Your slot is reserved. Complete your deposit securely via Stripe to lock in your production week.</p>
+      
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <button id="payViaStripeBtn" class="btn" style="background:linear-gradient(135deg, var(--gold) 0%, var(--gold-bright) 100%);color:var(--ink);font-weight:700;padding:12px 22px;">
+          <span id="payBtnText">Pay Deposit via Stripe &rarr;</span>
+        </button>
+        <button id="copyPortalPayLinkBtn" type="button" class="btn-ghost" style="padding:10px 16px;font-size:13px;">Copy Payment Link</button>
+      </div>
+
+      <div id="payLinkBox" style="margin-top:14px;display:none;background:var(--ink);border:1px solid var(--line-gold);border-radius:6px;padding:10px 14px;">
+        <div style="font-size:11px;color:var(--gold-bright);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">Direct Stripe Checkout URL:</div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <input type="text" id="payLinkInput" readonly style="font-family:monospace;font-size:11.5px;color:var(--parchment);background:transparent;border:none;flex:1;outline:none;" aria-label="Direct payment link">
+          <a id="payLinkDirectAnchor" href="#" target="_blank" style="font-size:12.5px;color:var(--gold-bright);text-decoration:underline;white-space:nowrap;">Open Link ↗</a>
+        </div>
+      </div>
+      <div id="payActionMsg" style="font-size:13px;margin-top:10px;display:none;"></div>
+    </div>
+
     <div class="card">
       <span class="badge" id="statusBadge"></span>
       <div class="kv"><span>Book / series</span><span id="sBook">—</span></div>
@@ -196,6 +228,36 @@ document.getElementById('lookupBtn').addEventListener('click', async () => {
   }
 });
 
+let cachedPaymentUrl = null;
+
+async function getPaymentUrl() {
+  if (cachedPaymentUrl) return cachedPaymentUrl;
+  const siteOrigin = window.location.origin;
+  const returnUrl = `${siteOrigin}/site/track.html?cid=${encodeURIComponent(current.id)}&email=${encodeURIComponent(current.email)}&paid=1`;
+  const cancelUrl = `${siteOrigin}/site/track.html?cid=${encodeURIComponent(current.id)}&email=${encodeURIComponent(current.email)}`;
+
+  const { data, error } = await sb.functions.invoke('send-payment-link', {
+    body: {
+      commission_id: current.id,
+      return_url: returnUrl,
+      cancel_url: cancelUrl,
+      skip_email: true
+    }
+  });
+
+  let url = data?.url;
+  if (!url && error) {
+    let body = null;
+    try { body = await error.context.json(); } catch(e){}
+    url = body?.paymentUrl;
+  }
+  if (!url) {
+    throw new Error((error && error.message) || 'Unable to generate Stripe checkout link');
+  }
+  cachedPaymentUrl = url;
+  return url;
+}
+
 function renderStatus(row) {
   document.getElementById('statusBadge').textContent = (row.status || '').replace('_', ' ');
   document.getElementById('sBook').textContent = row.book_title || '—';
@@ -205,6 +267,46 @@ function renderStatus(row) {
   document.getElementById('sTotal').textContent = money(row.total_price);
   document.getElementById('sDeposit').innerHTML = `<span class="${row.deposit_paid ? 'paid-yes' : 'paid-no'}">${row.deposit_paid ? 'Paid' : 'Awaiting payment'}</span> &middot; ${money(row.deposit_amount)}`;
   document.getElementById('sBalance').innerHTML = `<span class="${row.balance_paid ? 'paid-yes' : 'paid-no'}">${row.balance_paid ? 'Paid' : 'Not yet due'}</span>`;
+
+  // Paid banner if returning from Stripe checkout
+  const params = new URLSearchParams(window.location.search);
+  const paidBanner = document.getElementById('paidBanner');
+  if (paidBanner) {
+    paidBanner.style.display = params.get('paid') === '1' ? 'block' : 'none';
+  }
+
+  // Payment Action Card logic
+  const payCard = document.getElementById('paymentActionCard');
+  const payTag = document.getElementById('payTag');
+  const payTitle = document.getElementById('payTitle');
+  const payDesc = document.getElementById('payDesc');
+  const payBtnText = document.getElementById('payBtnText');
+  const payBtn = document.getElementById('payViaStripeBtn');
+  const linkBox = document.getElementById('payLinkBox');
+  const msg = document.getElementById('payActionMsg');
+
+  if (linkBox) linkBox.style.display = 'none';
+  if (msg) msg.style.display = 'none';
+  if (payBtn) payBtn.disabled = false;
+
+  if (!row.deposit_paid) {
+    payCard.style.display = 'block';
+    payTag.textContent = 'Deposit Due';
+    payTag.style.color = 'var(--gold-bright)';
+    payTitle.textContent = `Deposit Payment Due: ${money(row.deposit_amount)}`;
+    payDesc.textContent = 'Your production week is reserved. If you have not yet received your payment link by email, you can complete your deposit securely right here via Stripe to activate production.';
+    payBtnText.textContent = `Pay Deposit via Stripe (${money(row.deposit_amount)}) →`;
+  } else if (!row.balance_paid && (row.total_price > row.deposit_amount)) {
+    const bal = row.total_price - row.deposit_amount;
+    payCard.style.display = 'block';
+    payTag.textContent = 'Balance Due';
+    payTag.style.color = 'var(--parchment)';
+    payTitle.textContent = `Remaining Balance: ${money(bal)}`;
+    payDesc.textContent = 'Your deposit is paid! You can settle the remaining balance now or prior to final high-resolution delivery.';
+    payBtnText.textContent = `Pay Balance via Stripe (${money(bal)}) →`;
+  } else {
+    payCard.style.display = 'none';
+  }
 
   const notesWrap = document.getElementById('notesList');
   const notes = row.notes || [];
@@ -251,8 +353,83 @@ document.getElementById('addNoteBtn').addEventListener('click', async () => {
   }
 });
 
+document.getElementById('payViaStripeBtn').addEventListener('click', async () => {
+  if (!current) return;
+  const btn = document.getElementById('payViaStripeBtn');
+  const btnText = document.getElementById('payBtnText');
+  const msg = document.getElementById('payActionMsg');
+  const originalText = btnText.textContent;
+  btn.disabled = true;
+  btnText.textContent = 'Connecting to Stripe…';
+  msg.style.display = 'none';
+
+  try {
+    const url = await getPaymentUrl();
+    const linkInput = document.getElementById('payLinkInput');
+    const linkAnchor = document.getElementById('payLinkDirectAnchor');
+    linkInput.value = url;
+    linkAnchor.href = url;
+    document.getElementById('payLinkBox').style.display = 'block';
+
+    msg.style.color = 'var(--ok)';
+    msg.textContent = 'Redirecting to secure Stripe checkout…';
+    msg.style.display = 'block';
+
+    window.location.href = url;
+  } catch (err) {
+    console.error(err);
+    btn.disabled = false;
+    btnText.textContent = originalText;
+    msg.style.color = 'var(--err)';
+    msg.textContent = 'Could not load payment checkout: ' + (err.message || 'Please try again.');
+    msg.style.display = 'block';
+  }
+});
+
+document.getElementById('copyPortalPayLinkBtn').addEventListener('click', async () => {
+  if (!current) return;
+  const copyBtn = document.getElementById('copyPortalPayLinkBtn');
+  const msg = document.getElementById('payActionMsg');
+  copyBtn.disabled = true;
+  copyBtn.textContent = 'Generating…';
+  msg.style.display = 'none';
+
+  try {
+    const url = await getPaymentUrl();
+    const linkInput = document.getElementById('payLinkInput');
+    const linkAnchor = document.getElementById('payLinkDirectAnchor');
+    linkInput.value = url;
+    linkAnchor.href = url;
+    document.getElementById('payLinkBox').style.display = 'block';
+
+    try {
+      await navigator.clipboard.writeText(url);
+      copyBtn.textContent = 'Copied ✓';
+      msg.style.color = 'var(--ok)';
+      msg.textContent = 'Secure Stripe payment link copied to clipboard!';
+      msg.style.display = 'block';
+    } catch(e) {
+      linkInput.select();
+      copyBtn.textContent = 'Copy';
+      msg.style.color = 'var(--parchment-dim)';
+      msg.textContent = 'Link generated below. You can copy it directly:';
+      msg.style.display = 'block';
+    }
+  } catch (err) {
+    console.error(err);
+    copyBtn.textContent = 'Copy Payment Link';
+    msg.style.color = 'var(--err)';
+    msg.textContent = 'Error: ' + (err.message || 'Could not generate link.');
+    msg.style.display = 'block';
+  } finally {
+    copyBtn.disabled = false;
+    setTimeout(() => { if (copyBtn.textContent === 'Copied ✓') copyBtn.textContent = 'Copy Payment Link'; }, 2500);
+  }
+});
+
 document.getElementById('lookupAnother').addEventListener('click', () => {
   current = null;
+  cachedPaymentUrl = null;
   document.getElementById('statusView').style.display = 'none';
   document.getElementById('lookupView').style.display = 'block';
   document.getElementById('cid').value = '';
