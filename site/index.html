@@ -238,6 +238,93 @@
     font-size: 16px;
     font-weight: 700;
   }
+  /* Rush Commission option card */
+  .rush-panel {
+    background: linear-gradient(135deg, rgba(92, 36, 56, 0.38) 0%, rgba(34, 29, 51, 0.7) 100%);
+    border: 1px solid var(--line-gold);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: all var(--dur) var(--ease);
+  }
+  .rush-panel.active {
+    background: linear-gradient(135deg, rgba(132, 47, 76, 0.45) 0%, rgba(43, 37, 64, 0.8) 100%);
+    border-color: var(--gold-bright);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  .rush-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .rush-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(201, 160, 95, 0.2);
+    border: 1px solid var(--gold);
+    color: var(--gold-bright);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+  .rush-title {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--parchment);
+  }
+  .rush-desc {
+    font-size: 13px;
+    color: var(--parchment-dim);
+    line-height: 1.5;
+    margin: 0;
+  }
+  .rush-toggle-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    background: var(--ink-surface);
+    border: 1px solid var(--gold);
+    border-radius: 6px;
+    padding: 9px 14px;
+    color: var(--parchment);
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.15s ease;
+    user-select: none;
+  }
+  .rush-toggle-label:hover {
+    background: rgba(201, 160, 95, 0.18);
+    border-color: var(--gold-bright);
+  }
+  .rush-toggle-label input[type="checkbox"] {
+    accent-color: var(--gold-bright);
+    width: 17px;
+    height: 17px;
+    cursor: pointer;
+    margin: 0;
+  }
+  .rush-badge-slot {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--gold-bright);
+    background: rgba(201, 160, 95, 0.18);
+    border: 1px solid rgba(201, 160, 95, 0.45);
+    border-radius: 4px;
+    padding: 1px 7px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
   .slot .d {
     font-family: 'Cormorant Garamond', Georgia, serif;
     font-size: 22px;
@@ -677,6 +764,7 @@
       <label for="needBy">Need it by a certain date? (optional)</label>
       <input type="date" id="needBy">
       <p class="lead" id="needByNote" style="margin-top:8px;font-size:14px;"></p>
+      <div id="rushOptionContainer"></div>
     </div>
 
     <div class="slot-grid" id="slotGrid">
@@ -1052,6 +1140,7 @@ let commissionTypes = [];
 let extras = [];
 let slots = [];
 let leadTimeWeeks = 6; // overwritten from studio_settings.lead_time_weeks
+let isRushRequested = false;
 let state = { 
   slotId: null, 
   slotLabel: '', 
@@ -1143,7 +1232,7 @@ function parseUrlParams() {
   if (extras.length) {
     const wanted = new Set((params.get('extras') || '').split(',').filter(Boolean));
     if (merch) wanted.add('merch');
-    if (rush) wanted.add('rush');
+    if (rush) { wanted.add('rush'); isRushRequested = true; }
     extras.forEach(e => {
       if (wanted.has(e.id) && !state.extraIds.includes(e.id)) {
         setExtra(e.id, true);
@@ -1203,11 +1292,14 @@ function renderSlots() {
   
   const needBy = document.getElementById('needBy').value;
   const note = document.getElementById('needByNote');
+  const rushBox = document.getElementById('rushOptionContainer');
   let anyFits = false;
+
   // Minimum notice before a client's deadline (studio_settings.lead_time_weeks).
   const earliestDeadline = new Date(); earliestDeadline.setUTCHours(0, 0, 0, 0);
   earliestDeadline.setUTCDate(earliestDeadline.getUTCDate() + leadTimeWeeks * 7);
   const tooSoon = !!needBy && new Date(needBy + 'T00:00:00Z') < earliestDeadline;
+
   slots.forEach(s => {
     const el = document.createElement('div');
     el.className = 'slot';
@@ -1216,11 +1308,34 @@ function renderSlots() {
     const remaining = s.capacity - s.booked_count;
     const d = new Date(s.slot_date);
     const dateLabel = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
-    const est = new Date(s.slot_date); est.setUTCDate(est.getUTCDate() + 14);
-    const fits = !needBy || (!tooSoon && est <= new Date(needBy + 'T00:00:00Z'));
+    
+    // Normal turnaround: ~14 days from slot start.
+    // Rush turnaround: priority fast-track ~7 days from slot start.
+    const estDays = isRushRequested ? 7 : 14;
+    const est = new Date(s.slot_date); est.setUTCDate(est.getUTCDate() + estDays);
+    
+    let fits = false;
+    if (!needBy) {
+      fits = true;
+    } else if (isRushRequested) {
+      fits = est <= new Date(needBy + 'T00:00:00Z');
+    } else {
+      fits = !tooSoon && est <= new Date(needBy + 'T00:00:00Z');
+    }
+
     if (fits) anyFits = true;
+
+    const statusNote = !needBy
+      ? `${remaining} slot${remaining === 1 ? '' : 's'} remaining`
+      : (fits
+        ? (isRushRequested
+          ? `${remaining} slot${remaining === 1 ? '' : 's'} &bull; Expedited finish by ${est.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`
+          : `${remaining} slot${remaining === 1 ? '' : 's'} remaining`)
+        : 'Estimated finish is after your date');
+
     el.setAttribute('aria-label', `${dateLabel}, ${remaining} slot${remaining === 1 ? '' : 's'} available` + (fits ? '' : ', too late for your date'));
-    el.innerHTML = `<div class="d">${dateLabel}</div><div class="m">${fits ? remaining + ' slot' + (remaining === 1 ? '' : 's') + ' remaining' : 'Estimated finish is after your date'}</div>`;
+    el.innerHTML = `<div class="d">${dateLabel}${isRushRequested && fits ? ' <span class="rush-badge-slot">⚡ Rush</span>' : ''}</div><div class="m">${statusNote}</div>`;
+    
     if (!fits) {
       el.classList.add('unavailable');
       el.setAttribute('aria-disabled', 'true');
@@ -1253,11 +1368,77 @@ function renderSlots() {
     if (state.slotId === s.id) { el.classList.add('selected'); el.setAttribute('aria-pressed', 'true'); }
     grid.appendChild(el);
   });
-  note.textContent = !needBy ? '' : tooSoon
-    ? `We ask for at least ${leadTimeWeeks} weeks between booking and your deadline so feedback delays never put your launch at risk. For anything sooner, please contact the studio about a rush commission.`
-    : (anyFits
-    ? 'Showing weeks where the estimated finish (about two weeks after the slot starts) falls on or before your date. Estimates can move if feedback is late.'
-    : 'No open week is estimated to finish by that date. Try a later date, or contact the studio about a rush commission.');
+
+  // Render guidance note and interactive Rush Commission option
+  if (!needBy) {
+    note.textContent = '';
+    if (rushBox) rushBox.innerHTML = '';
+  } else if (isRushRequested) {
+    const formattedDate = new Date(needBy + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+    note.innerHTML = '<span style="color:var(--gold-bright);font-weight:600;">⚡ Rush Commission active (+30% priority turnaround).</span> Showing expedited slots for ' + formattedDate + '.';
+    if (rushBox) {
+      rushBox.innerHTML = `
+        <div class="rush-panel active">
+          <div class="rush-panel-head">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="rush-tag" style="background:rgba(201,160,95,0.3);color:var(--parchment);">⚡ Rush Active</span>
+              <span class="rush-title">Priority Schedule (+30% surcharge)</span>
+            </div>
+            <label class="rush-toggle-label" for="rushCheckbox" style="background:rgba(201,160,95,0.15);border-color:var(--gold-bright);">
+              <input type="checkbox" id="rushCheckbox" checked>
+              <span>Rush Applied (+30%)</span>
+            </label>
+          </div>
+          <p class="rush-desc">
+            Your production slot will be fast-tracked to deliver by <strong>${formattedDate}</strong>.
+            ${!anyFits ? '<br><span style="color:var(--err);font-weight:600;display:block;margin-top:6px;">No calendar weeks begin early enough to finish by that date. Please contact the studio directly below for emergency turnaround.</span>' : ''}
+          </p>
+          ${!anyFits ? `
+            <div style="margin-top:6px;">
+              <a href="mailto:studio@crowsquill.art?subject=Emergency%20Rush%20Commission%20Enquiry%20-%20Needed%20by%20${needBy}&body=Hi%20there,%0A%0AI%20need%20a%20rush%20illustration%20by%20${needBy}.%20Can%20you%20accommodate%20an%20emergency%20turnaround?%0A%0ABook:%20%0ACharacters:%20" class="btn-ghost" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;font-size:12.5px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                Email Studio for Emergency Rush
+              </a>
+            </div>
+          ` : ''}
+        </div>
+      `;
+      document.getElementById('rushCheckbox').addEventListener('change', (e) => {
+        isRushRequested = e.target.checked;
+        setExtra('rush', isRushRequested);
+        renderSlots();
+      });
+    }
+  } else if (tooSoon || !anyFits) {
+    note.textContent = `We ask for at least ${leadTimeWeeks} weeks between booking and your deadline so feedback delays never put your launch at risk. If you need it sooner, you can request an expedited Rush Commission below.`;
+    if (rushBox) {
+      rushBox.innerHTML = `
+        <div class="rush-panel">
+          <div class="rush-panel-head">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="rush-tag">⚡ Need it sooner?</span>
+              <span class="rush-title">Request a Rush Commission</span>
+            </div>
+            <label class="rush-toggle-label" for="rushCheckbox">
+              <input type="checkbox" id="rushCheckbox">
+              <span>Apply Rush Commission (+30%)</span>
+            </label>
+          </div>
+          <p class="rush-desc">
+            Expedited scheduling prioritizes your piece and unlocks earlier production weeks to meet your deadline. A +30% priority surcharge applies.
+          </p>
+        </div>
+      `;
+      document.getElementById('rushCheckbox').addEventListener('change', (e) => {
+        isRushRequested = e.target.checked;
+        setExtra('rush', isRushRequested);
+        renderSlots();
+      });
+    }
+  } else {
+    note.textContent = 'Showing weeks where the estimated finish (about two weeks after the slot starts) falls on or before your date. Estimates can move if feedback is late.';
+    if (rushBox) rushBox.innerHTML = '';
+  }
 }
 document.getElementById('needBy').addEventListener('change', () => { if (slots.length) renderSlots(); });
 
@@ -1374,6 +1555,11 @@ function setExtra(id, on) {
   const has = state.extraIds.includes(id);
   if (on && !has) state.extraIds.push(id);
   if (!on && has) state.extraIds = state.extraIds.filter(x => x !== id);
+  if (id === 'rush') {
+    isRushRequested = on;
+    const chk = document.getElementById('rushCheckbox');
+    if (chk) chk.checked = on;
+  }
   const chip = document.querySelector(`.chk[data-id="${id}"]`);
   if (chip) {
     chip.classList.toggle('on', on);
@@ -1429,9 +1615,15 @@ async function uploadReferenceMaterial(commissionId) {
 
 // Step 0 -> Step 1
 document.getElementById('toStep1').addEventListener('click', () => {
-  document.getElementById('slotConfirmLine').textContent = `Reserved Production Slot: Week of ${state.slotLabel}`;
+  document.getElementById('slotConfirmLine').textContent = `Reserved Production Slot: Week of ${state.slotLabel}` + (isRushRequested ? ' (⚡ Rush Priority)' : '');
   const nb = document.getElementById('needBy').value;
-  if (nb) { document.getElementById('hasDeadline').value = 'Yes'; document.getElementById('deadlineDate').value = nb; }
+  if (nb) { 
+    document.getElementById('hasDeadline').value = 'Yes'; 
+    document.getElementById('deadlineDate').value = nb;
+    if (isRushRequested && !document.getElementById('deadlineReason').value) {
+      document.getElementById('deadlineReason').value = 'Expedited Rush Commission';
+    }
+  }
   showStep('step1');
 });
 
