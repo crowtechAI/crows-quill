@@ -1632,11 +1632,6 @@
           <span class="gallery-tag">Character Portrait</span>
           <img src="/images/gallery/portrait-new.jpg?v=wm1" alt="Portrait of a dark-haired elf with amber eyes glancing over a shadowed shoulder" loading="lazy" decoding="async" style="object-position: center 30%;">
         </div>
-        <div class="gallery-content">
-          <div>
-            <a class="gallery-view" href="/images/gallery/portrait-new.jpg?v=wm1" target="_blank" rel="noopener">View full size &nearr;</a>
-          </div>
-        </div>
       </article>
 
 
@@ -1645,22 +1640,12 @@
           <span class="gallery-tag">Character Portrait</span>
           <img src="/images/gallery/portrait-2.jpg?v=wm1" alt="Painted profile portrait of a dark-haired elf with a golden eye, looking up and away against a stormy sky" loading="lazy" decoding="async" style="object-position: center 35%;">
         </div>
-        <div class="gallery-content">
-          <div>
-            <a class="gallery-view" href="/images/gallery/portrait-2.jpg?v=wm1" target="_blank" rel="noopener">View full size &nearr;</a>
-          </div>
-        </div>
       </article>
 
       <article class="gallery-card">
         <div class="gallery-img-wrap">
           <span class="gallery-tag">Character Portrait</span>
           <img src="/images/gallery/portrait-3.jpg?v=wm1" alt="Painted close-up portrait of a figure in a deep green hood, one pale eye catching the light from the shadows" loading="lazy" decoding="async" style="object-position: center 50%;">
-        </div>
-        <div class="gallery-content">
-          <div>
-            <a class="gallery-view" href="/images/gallery/portrait-3.jpg?v=wm1" target="_blank" rel="noopener">View full size &nearr;</a>
-          </div>
         </div>
       </article>
     </div>
@@ -1686,11 +1671,6 @@
           <span class="gallery-tag">Romantasy Duo</span>
           <img src="/images/gallery/romantasy-couple.jpg?v=wm1" alt="Painted romantasy scene: a braided heroine holds a knife to a smirking elf's throat in a dim, candlelit room" loading="lazy" decoding="async" style="object-position: center 22%;">
         </div>
-        <div class="gallery-content">
-          <div>
-            <a class="gallery-view" href="/images/gallery/romantasy-couple.jpg?v=wm1" target="_blank" rel="noopener">View full size &nearr;</a>
-          </div>
-        </div>
       </article>
 
       <!-- Scene -->
@@ -1698,11 +1678,6 @@
         <div class="gallery-img-wrap">
           <span class="gallery-tag">Illustrated Scene</span>
           <img src="/images/gallery/illustrated-scene.jpg?v=wm1" alt="Painted winter market scene: a stallholder hands a silver-haired elf in a star-pinned coat a piece of fudge under lantern light" loading="lazy" decoding="async" style="object-position: center;">
-        </div>
-        <div class="gallery-content">
-          <div>
-            <a class="gallery-view" href="/images/gallery/illustrated-scene.jpg?v=wm1" target="_blank" rel="noopener">View full size &nearr;</a>
-          </div>
         </div>
       </article>
     </div>
@@ -2299,10 +2274,7 @@
           <span class="gallery-tag">${esc(it.label)}</span>
           <img src="${esc(it.image_url)}" alt="${esc(it.alt_text)}" loading="lazy" decoding="async" style="object-position: ${esc(it.image_position || 'center')};">
         </div>
-        <div class="gallery-content">
-          <div><a class="gallery-view" href="${esc(it.image_url)}" target="_blank" rel="noopener">View full size &nearr;</a></div>
-          ${footer}
-        </div>
+        ${footer ? `<div class="gallery-content">${footer}</div>` : ''}
       </article>`;
     };
     [['gallery', '#gallery .gallery-grid'], ['commissions', '#commissions .gallery-grid']].forEach(([section, sel]) => {
