@@ -222,6 +222,8 @@
   .slot:active {
     transform: scale(0.98);
   }
+  .slot.unavailable { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+  .slot.unavailable .m { color: var(--muted, #a49cb2); }
   .slot.selected {
     border-color: var(--gold-bright);
     background: rgba(201, 160, 95, 0.12);
@@ -671,6 +673,12 @@
     <h2 id="step0Title">Choose Your Production Week</h2>
     <p class="lead">Select an open calendar slot to reserve your production week. Delivery dates are estimates, and yours is set out in your agreement.</p>
     
+    <div class="field">
+      <label for="needBy">Need it by a certain date? (optional)</label>
+      <input type="date" id="needBy">
+      <p class="lead" id="needByNote" style="margin-top:8px;font-size:14px;"></p>
+    </div>
+
     <div class="slot-grid" id="slotGrid">
       <p class="loading-msg">Querying studio availability…</p>
     </div>
@@ -1043,6 +1051,7 @@ const sb = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 let commissionTypes = [];
 let extras = [];
 let slots = [];
+let leadTimeWeeks = 6; // overwritten from studio_settings.lead_time_weeks
 let state = { 
   slotId: null, 
   slotLabel: '', 
@@ -1145,14 +1154,33 @@ function parseUrlParams() {
 
 async function loadData() {
   try {
-    const [{ data: ct }, { data: ex }, { data: sl }] = await Promise.all([
+    const todayIso = new Date().toISOString().slice(0, 10);
+    const [{ data: ct }, { data: ex }, { data: sl, error: slErr }, { data: cfg }] = await Promise.all([
       sb.from('commission_types').select('*').order('sort_order'),
       sb.from('extras').select('*').order('sort_order'),
-      sb.from('slots').select('*').eq('status','open').order('slot_date')
+      sb.rpc('get_slot_availability', { p_from: todayIso }),
+      sb.from('studio_settings').select('lead_time_weeks, monthly_capacity').maybeSingle()
     ]);
+    if (slErr) throw slErr;
     commissionTypes = ct || [];
     extras = ex || [];
-    slots = sl || [];
+    if (cfg) {
+      if (cfg.lead_time_weeks != null && cfg.lead_time_weeks !== 6) {
+        leadTimeWeeks = cfg.lead_time_weeks;
+      } else {
+        // Dynamic Safety Margin Check:
+        // Scaling up to 6 commissions/mo changes the safe booking window from 6 to 8 weeks
+        // (2 months prior to deadline) so author sketch feedback delays never bottleneck delivery.
+        leadTimeWeeks = (cfg.monthly_capacity >= 6) ? 8 : (cfg.lead_time_weeks || 6);
+      }
+    }
+    // Monthly cap lives in the backend (studio_settings.monthly_capacity). A date is
+    // only offered while its whole month still has room; the fields are mapped so the
+    // picker's "remaining" maths (capacity - booked_count) now means "places left this month".
+    slots = (sl || []).filter(r => r.bookable).map(r => ({
+      id: r.slot_id, slot_date: r.slot_date, status: r.status,
+      capacity: r.monthly_capacity, booked_count: r.committed
+    }));
     
     renderSlots();
     renderTypeOptions();
@@ -1173,6 +1201,13 @@ function renderSlots() {
     return; 
   }
   
+  const needBy = document.getElementById('needBy').value;
+  const note = document.getElementById('needByNote');
+  let anyFits = false;
+  // Minimum notice before a client's deadline (studio_settings.lead_time_weeks).
+  const earliestDeadline = new Date(); earliestDeadline.setUTCHours(0, 0, 0, 0);
+  earliestDeadline.setUTCDate(earliestDeadline.getUTCDate() + leadTimeWeeks * 7);
+  const tooSoon = !!needBy && new Date(needBy + 'T00:00:00Z') < earliestDeadline;
   slots.forEach(s => {
     const el = document.createElement('div');
     el.className = 'slot';
@@ -1181,8 +1216,19 @@ function renderSlots() {
     const remaining = s.capacity - s.booked_count;
     const d = new Date(s.slot_date);
     const dateLabel = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
-    el.setAttribute('aria-label', `${dateLabel}, ${remaining} slot${remaining === 1 ? '' : 's'} available`);
-    el.innerHTML = `<div class="d">${dateLabel}</div><div class="m">${remaining} slot${remaining === 1 ? '' : 's'} remaining</div>`;
+    const est = new Date(s.slot_date); est.setUTCDate(est.getUTCDate() + 14);
+    const fits = !needBy || (!tooSoon && est <= new Date(needBy + 'T00:00:00Z'));
+    if (fits) anyFits = true;
+    el.setAttribute('aria-label', `${dateLabel}, ${remaining} slot${remaining === 1 ? '' : 's'} available` + (fits ? '' : ', too late for your date'));
+    el.innerHTML = `<div class="d">${dateLabel}</div><div class="m">${fits ? remaining + ' slot' + (remaining === 1 ? '' : 's') + ' remaining' : 'Estimated finish is after your date'}</div>`;
+    if (!fits) {
+      el.classList.add('unavailable');
+      el.setAttribute('aria-disabled', 'true');
+      el.removeAttribute('tabindex');
+      if (state.slotId === s.id) { state.slotId = null; state.slotLabel = ''; state.slotDate = null; document.getElementById('toStep1').disabled = true; }
+      grid.appendChild(el);
+      return;
+    }
     
     const select = () => {
       document.querySelectorAll('.slot').forEach(x => { 
@@ -1204,9 +1250,16 @@ function renderSlots() {
         select(); 
       } 
     });
+    if (state.slotId === s.id) { el.classList.add('selected'); el.setAttribute('aria-pressed', 'true'); }
     grid.appendChild(el);
   });
+  note.textContent = !needBy ? '' : tooSoon
+    ? `We ask for at least ${leadTimeWeeks} weeks between booking and your deadline so feedback delays never put your launch at risk. For anything sooner, please contact the studio about a rush commission.`
+    : (anyFits
+    ? 'Showing weeks where the estimated finish (about two weeks after the slot starts) falls on or before your date. Estimates can move if feedback is late.'
+    : 'No open week is estimated to finish by that date. Try a later date, or contact the studio about a rush commission.');
 }
+document.getElementById('needBy').addEventListener('change', () => { if (slots.length) renderSlots(); });
 
 function renderTypeOptions() {
   const groups = framingGroups();
@@ -1377,6 +1430,8 @@ async function uploadReferenceMaterial(commissionId) {
 // Step 0 -> Step 1
 document.getElementById('toStep1').addEventListener('click', () => {
   document.getElementById('slotConfirmLine').textContent = `Reserved Production Slot: Week of ${state.slotLabel}`;
+  const nb = document.getElementById('needBy').value;
+  if (nb) { document.getElementById('hasDeadline').value = 'Yes'; document.getElementById('deadlineDate').value = nb; }
   showStep('step1');
 });
 

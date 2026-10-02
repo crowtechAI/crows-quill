@@ -164,10 +164,16 @@
   .cal-day.full { background:rgba(201,160,95,0.12); border-color:rgba(201,160,95,0.3); }
   .cal-day.closed { background:rgba(141,133,155,0.08); }
   .cal-day.in-range { outline:2px solid var(--bronze-bright); outline-offset:-2px; }
+  .cal-settings-panel { background:var(--ink-soft2); border:1px solid var(--line-gold); border-radius:8px; padding:16px 18px; margin-bottom:20px; }
+  .cal-settings-head { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+  .cal-settings-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-top:14px; }
+  .cal-setting-item label { font-size:13px; font-weight:600; color:var(--parchment); display:block; margin-bottom:4px; }
+  .cal-setting-item .desc { font-size:11.5px; color:var(--lilac-dim); margin-bottom:8px; line-height:1.4; }
+  .cal-setting-item .field-row { display:flex; align-items:center; gap:8px; }
+  .cal-setting-item input[type=number] { width:80px; padding:8px 10px; background:var(--ink-surface); border:1px solid var(--line-gold); border-radius:4px; color:var(--parchment); font-weight:600; }
+  .cal-workflow-guide { margin-top:14px; padding:12px 14px; background:var(--ink); border:1px solid var(--line); border-radius:6px; font-size:12.5px; line-height:1.55; }
   .cal-actionbar { display:none; align-items:center; gap:12px; background:var(--ink-soft2); border:1px solid var(--line-gold); border-radius:6px; padding:14px 16px; margin-top:16px; flex-wrap:wrap; }
   .cal-actionbar.show { display:flex; }
-  .cal-actionbar label { margin:0; font-size:12.5px; }
-  .cal-actionbar input[type=number] { width:70px; padding:8px 10px; }
 
   /* ---------- Clients (resource centre) ---------- */
   .side-divider { height:1px; background:var(--line); margin:10px 6px; }
@@ -568,6 +574,8 @@ document.addEventListener('keydown', (e) => {
 let calendarLoadedOnce = false;
 let calYear, calMonth; // calMonth is 0-indexed
 let slotsByDate = {}; // 'YYYY-MM-DD' -> slot row
+let monthlyCapacity = 4; // studio_settings.monthly_capacity
+let leadTimeWeeks = 6; // studio_settings.lead_time_weeks
 let selRange = { start: null, end: null }; // 'YYYY-MM-DD'
 
 (function initCalDate() {
@@ -583,11 +591,22 @@ function isoDate(d) {
 async function loadSlotsForMonth(year, month) {
   const first = new Date(year, month, 1);
   const last = new Date(year, month + 1, 0);
-  const { data, error } = await sb.from('slots').select('*')
-    .gte('slot_date', isoDate(first)).lte('slot_date', isoDate(last));
+  const [{ data, error }, { data: cfg }] = await Promise.all([
+    sb.rpc('get_slot_availability', { p_from: isoDate(first), p_to: isoDate(last) }),
+    sb.from('studio_settings').select('monthly_capacity, lead_time_weeks').maybeSingle()
+  ]);
   if (error) { console.error(error); return; }
+  if (cfg) {
+    if (cfg.monthly_capacity != null) monthlyCapacity = cfg.monthly_capacity;
+    if (cfg.lead_time_weeks != null) leadTimeWeeks = cfg.lead_time_weeks;
+  }
   slotsByDate = {};
-  (data || []).forEach(s => { slotsByDate[s.slot_date] = s; });
+  (data || []).forEach(s => {
+    // Monthly cap decides fullness: an open date in a full month shows as Full.
+    const display = (s.status === 'blocked' || s.status === 'closed') ? 'closed'
+      : (s.remaining <= 0 ? 'full' : 'open');
+    slotsByDate[s.slot_date] = { id: s.slot_id, slot_date: s.slot_date, status: display, remaining: s.remaining };
+  });
 }
 
 async function renderCalendar() {
@@ -602,6 +621,62 @@ async function renderCalendar() {
   const todayIso = isoDate(new Date());
 
   let html = `
+    <div class="cal-settings-panel">
+      <div class="cal-settings-head">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <h3 style="font-size:15px;margin:0;color:var(--parchment);">Studio Capacity &amp; Booking Rules</h3>
+          <span class="badge" style="background:rgba(201,160,95,0.15);color:var(--bronze-bright);font-size:11px;padding:2px 8px;border-radius:10px;">Backend Counter Limit</span>
+        </div>
+        <span id="calSaveMsg" style="font-size:12px;color:var(--ok);display:none;transition:opacity .2s;">Saved to database</span>
+      </div>
+      <div class="cal-settings-grid">
+        <div class="cal-setting-item">
+          <label for="calMonthlyCap">Monthly Commission Limit</label>
+          <div class="desc">Cap per calendar month across all dates. Change from 4 to 6 here to scale your studio.</div>
+          <div class="field-row">
+            <input type="number" id="calMonthlyCap" min="1" max="50" value="${monthlyCapacity}">
+            <span style="font-size:12.5px;color:var(--lilac);">commissions / mo</span>
+          </div>
+        </div>
+        <div class="cal-setting-item">
+          <label for="calLeadTime">Safe Booking Buffer (Turnaround Window)</label>
+          <div class="desc">Notice required before author's deadline (6 weeks for 4 pieces; 8 weeks for 6 pieces).</div>
+          <div class="field-row">
+            <input type="number" id="calLeadTime" min="1" max="26" value="${leadTimeWeeks}">
+            <span style="font-size:12.5px;color:var(--lilac);">weeks lead time</span>
+          </div>
+        </div>
+      </div>
+      <div class="cal-workflow-guide">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <strong style="color:var(--bronze-bright);">Workflow &amp; Batching Schedule (${monthlyCapacity} pieces/month):</strong>
+          <span style="color:var(--lilac-dim);font-size:11.5px;">${monthlyCapacity >= 6 ? '1.5 pieces/week (Strict Batching Schedule)' : '1 piece/week (Sequential Schedule)'}</span>
+        </div>
+        ${monthlyCapacity >= 6 ? `
+          <div style="color:var(--lilac);">
+            <p style="margin:0 0 8px;">Moving from 4 to 6 commissions shifts pace to 1.5 pieces/week. Switch from sequential work to this <strong>Batching Schedule</strong>:</p>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:6px;">
+              <div style="background:var(--ink-surface);padding:8px 10px;border-radius:4px;border:1px solid rgba(201,160,95,0.12);">
+                <strong style="color:var(--parchment);display:block;font-size:11.5px;">Week 1: Layouts</strong>
+                <span style="font-size:11px;color:var(--lilac-dim);">Sketch all 6 thumbnails at once and send them out.</span>
+              </div>
+              <div style="background:var(--ink-surface);padding:8px 10px;border-radius:4px;border:1px solid rgba(201,160,95,0.12);">
+                <strong style="color:var(--parchment);display:block;font-size:11.5px;">Weeks 2–4: Production</strong>
+                <span style="font-size:11px;color:var(--lilac-dim);">Group painting steps (render 2 BGs together, flat-colour 3 characters in one day).</span>
+              </div>
+              <div style="background:var(--ink-surface);padding:8px 10px;border-radius:4px;border:1px solid rgba(201,160,95,0.12);">
+                <strong style="color:var(--parchment);display:block;font-size:11.5px;">Week 5: Finalization &amp; Delivery</strong>
+                <span style="font-size:11px;color:var(--lilac-dim);">Apply final polish, export files, and send out invoices simultaneously.</span>
+              </div>
+            </div>
+          </div>
+        ` : `
+          <div style="color:var(--lilac-dim);">
+            Sequential 4 pieces/month workflow: ~1 piece per week sequential production with a 6-week safe booking window.
+          </div>
+        `}
+      </div>
+    </div>
     <div class="cal-head">
       <h2>${monthLabel}</h2>
       <div class="cal-nav">
@@ -629,11 +704,11 @@ async function renderCalendar() {
     const slot = slotsByDate[iso];
     const statusClass = slot ? slot.status : '';
     const isPast = iso < todayIso;
-    const remaining = slot ? Math.max(slot.capacity - slot.booked_count, 0) : null;
+    const remaining = slot ? slot.remaining : null;
     html += `
       <div class="cal-day ${statusClass} ${isPast ? 'past' : ''}" data-date="${iso}" ${isPast ? '' : 'role="button" tabindex="0"'}>
         <div class="num">${d}</div>
-        ${slot ? `<div class="status-line"><span class="cal-dot ${statusClass}"></span>${slot.status === 'closed' ? 'Closed' : remaining + ' left'}</div>` : ''}
+        ${slot ? `<div class="status-line"><span class="cal-dot ${statusClass}"></span>${slot.status === 'closed' ? 'Closed' : (slot.status === 'full' ? 'Full' : remaining + ' left')}</div>` : ''}
       </div>
     `;
   }
@@ -641,7 +716,6 @@ async function renderCalendar() {
   html += `</div>
     <div class="cal-actionbar" id="calActionBar">
       <strong id="calSelLabel" style="font-size:13px;color:var(--parchment);"></strong>
-      <label>Capacity/day <input type="number" id="calCapacity" min="1" value="1"></label>
       <button class="btn" id="calApplyOpen">Mark open</button>
       <button class="btn-ghost" id="calApplyClosed">Mark closed</button>
       <button class="link-btn" id="calClearSel" style="margin:0;">Cancel</button>
@@ -662,6 +736,38 @@ async function renderCalendar() {
     el.addEventListener('click', () => onDayClick(el.getAttribute('data-date')));
   });
 
+  async function saveStudioSettings(newCap, newLead) {
+    const { error } = await sb.from('studio_settings').update({
+      monthly_capacity: newCap,
+      lead_time_weeks: newLead,
+      updated_at: new Date().toISOString()
+    }).eq('id', true);
+    if (error) { alert('Could not save studio settings: ' + error.message); return false; }
+    monthlyCapacity = newCap;
+    leadTimeWeeks = newLead;
+    const msg = document.getElementById('calSaveMsg');
+    if (msg) {
+      msg.style.display = 'inline';
+      setTimeout(() => { msg.style.display = 'none'; }, 2500);
+    }
+    return true;
+  }
+
+  document.getElementById('calMonthlyCap').addEventListener('change', async (e) => {
+    const n = Math.min(50, Math.max(1, parseInt(e.target.value, 10) || 1));
+    e.target.value = n;
+    let newLead = leadTimeWeeks;
+    if (n >= 6 && leadTimeWeeks === 6) newLead = 8;
+    else if (n < 6 && leadTimeWeeks === 8) newLead = 6;
+    const ok = await saveStudioSettings(n, newLead);
+    if (ok) renderCalendar();
+  });
+
+  document.getElementById('calLeadTime').addEventListener('change', async (e) => {
+    const l = Math.min(26, Math.max(1, parseInt(e.target.value, 10) || 1));
+    e.target.value = l;
+    await saveStudioSettings(monthlyCapacity, l);
+  });
   document.getElementById('calClearSel').addEventListener('click', () => { clearSelection(); refreshSelectionUI(); });
   document.getElementById('calApplyOpen').addEventListener('click', () => applyToSelection('open'));
   document.getElementById('calApplyClosed').addEventListener('click', () => applyToSelection('closed'));
@@ -710,7 +816,6 @@ function refreshSelectionUI() {
 
 async function applyToSelection(action) {
   if (!selRange.start) return;
-  const capacity = Math.max(1, parseInt(document.getElementById('calCapacity').value, 10) || 1);
   const dates = [];
   let cur = new Date(selRange.start);
   const end = new Date(selRange.end);
@@ -723,9 +828,9 @@ async function applyToSelection(action) {
     const existing = slotsByDate[iso];
     if (action === 'open') {
       if (existing) {
-        await sb.from('slots').update({ status: 'open', capacity }).eq('id', existing.id);
+        await sb.from('slots').update({ status: 'open' }).eq('id', existing.id);
       } else {
-        await sb.from('slots').insert({ slot_date: iso, capacity, booked_count: 0, status: 'open' });
+        await sb.from('slots').insert({ slot_date: iso, status: 'open' });
       }
     } else {
       if (existing) {
