@@ -855,6 +855,8 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 24px;
   }
+  #gallery .gallery-grid { grid-template-columns: minmax(0, 420px); justify-content: center; }
+  .gallery-grid-pair { grid-template-columns: repeat(2, minmax(0, 420px)) !important; justify-content: center; }
   .gallery-card {
     background: var(--ink-soft);
     border: 1px solid var(--line);
@@ -1441,6 +1443,7 @@
     .hero-badges { grid-template-columns: repeat(2, 1fr); }
     .estimator-container { grid-template-columns: 1fr; padding: 32px 24px; }
     .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+    #gallery .gallery-grid { grid-template-columns: minmax(0, 420px); }
     .price-tier-grid { grid-template-columns: 1fr; }
     .process-timeline { grid-template-columns: 1fr; }
     .proof-grid { grid-template-columns: 1fr; }
@@ -1452,7 +1455,7 @@
     .nav-utility { display: none; }
     .nav-toggle { display: flex; }
     .calc-options { grid-template-columns: 1fr; }
-    .gallery-grid { grid-template-columns: 1fr; }
+    .gallery-grid, #gallery .gallery-grid, .gallery-grid-pair { grid-template-columns: 1fr !important; }
     .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
   }
 
@@ -1484,6 +1487,7 @@
 
       <div class="nav-links">
         <a class="nav-link" href="#gallery" data-section="gallery">Gallery</a>
+        <a class="nav-link" href="#commissions" data-section="commissions">Commissions</a>
         <a class="nav-link" href="#pricing" data-section="pricing">Pricing</a>
         <a class="nav-link" href="#calculator" data-section="calculator">Quote Calculator</a>
         <a class="nav-link" href="#process" data-section="process">Process</a>
@@ -1523,6 +1527,7 @@
   <div class="mobile-drawer" id="mobileDrawer" role="region" aria-label="Mobile Navigation">
     <div class="drawer-section-label">Explore</div>
     <a href="#gallery">Gallery</a>
+    <a href="#commissions">Commissions</a>
     <a href="#pricing">Pricing &amp; Tiers</a>
     <a href="#calculator">Quote Calculator</a>
     <a href="#process">Process</a>
@@ -1617,13 +1622,6 @@
       <p class="section-subtitle">Layered brushwork, strong light and shadow, and close attention to what's in your book.</p>
     </div>
 
-    <!-- Gallery Filter Tabs -->
-    <div class="gallery-tabs" role="tablist" aria-label="Portfolio Category Filter">
-      <button class="gallery-tab-btn active" data-filter="all" role="tab" aria-selected="true">All Works</button>
-      <button class="gallery-tab-btn" data-filter="portrait" role="tab" aria-selected="false">Portraits</button>
-      <button class="gallery-tab-btn" data-filter="romantasy" role="tab" aria-selected="false">Romantasy Couples</button>
-      <button class="gallery-tab-btn" data-filter="scenes" role="tab" aria-selected="false">Illustrated Scenes</button>
-    </div>
 
     <!-- Gallery Cards Grid -->
     <div class="gallery-grid">
@@ -1644,8 +1642,26 @@
         </div>
       </article>
 
-      <!-- Item 2 -->
-      <article class="gallery-card" data-category="romantasy">
+
+    </div>
+  </div>
+</section>
+
+<!-- Commissions Section -->
+<section id="commissions">
+  <div class="wrap">
+    <div class="section-header text-center">
+      <div class="section-kicker">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <span>Couples &amp; scenes</span>
+      </div>
+      <h2 class="section-title">Commissions</h2>
+      <p class="section-subtitle">Two-character art and painted scenes, each with its starting price.</p>
+    </div>
+
+    <div class="gallery-grid gallery-grid-pair">
+      <!-- Duo -->
+      <article class="gallery-card">
         <div class="gallery-img-wrap">
           <span class="gallery-tag">Romantasy Duo</span>
           <img src="/images/gallery/romantasy-couple.jpg?v=2" alt="Painted romantasy scene: a braided heroine holds a knife to a smirking elf's throat in a dim, candlelit room" loading="lazy" decoding="async" style="object-position: center 22%;">
@@ -1661,8 +1677,8 @@
         </div>
       </article>
 
-      <!-- Item 3 -->
-      <article class="gallery-card" data-category="scenes">
+      <!-- Scene -->
+      <article class="gallery-card">
         <div class="gallery-img-wrap">
           <span class="gallery-tag">Illustrated Scene</span>
           <img src="/images/gallery/illustrated-scene.jpg" alt="Painted winter market scene: a stallholder hands a silver-haired elf in a star-pinned coat a piece of fudge under lantern light" loading="lazy" decoding="async" style="object-position: center;">
@@ -1680,6 +1696,7 @@
     </div>
   </div>
 </section>
+
 
 <!-- Pricing Tiers Matrix -->
 <section id="pricing">
@@ -2221,6 +2238,7 @@
         <div class="footer-heading">Navigation</div>
         <ul class="footer-links">
           <li><a href="#gallery">Portfolio Gallery</a></li>
+          <li><a href="#commissions">Commissions</a></li>
           <li><a href="#pricing">Commission Tiers</a></li>
           <li><a href="#calculator">Quote Calculator</a></li>
           <li><a href="#process">3-Step Process</a></li>
