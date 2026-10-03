@@ -758,8 +758,8 @@
   <!-- Step 0: Slot Selection -->
   <section class="step active" id="step0" aria-labelledby="step0Title">
     <div class="kicker">Milestone 1 of 4</div>
-    <h2 id="step0Title">Choose Your Production Week</h2>
-    <p class="lead">Select an open calendar slot to reserve your production week. Delivery dates are estimates, and yours is set out in your agreement.</p>
+    <h2 id="step0Title">Choose Your Start Date</h2>
+    <p class="lead">Work for each month starts together on the first Monday. Pick the month you'd like to start in. Delivery is about five weeks after the start date. It's an estimate, and yours is set out in your agreement.</p>
     
     <div class="field">
       <label for="needBy">Need it by a certain date? (optional)</label>
@@ -1103,7 +1103,7 @@
     <div class="quote-card" style="background: var(--ink-soft); color: var(--parchment); box-shadow: none; border: 1px solid var(--line-gold);">
       <h2 style="color: var(--parchment); border-bottom-color: var(--line);">Reservation Summary</h2>
       <div class="summary-row">
-        <span style="color: var(--parchment-muted);">Production Week</span>
+        <span style="color: var(--parchment-muted);">Start Date</span>
         <span id="sSlot" style="color: var(--parchment); font-weight: 500;"></span>
       </div>
       <div class="summary-row">
@@ -1347,11 +1347,11 @@ function renderSlots() {
     if (fits) anyFits = true;
 
     const statusNote = !needBy
-      ? `${remaining} slot${remaining === 1 ? '' : 's'} remaining`
+      ? `${remaining} place${remaining === 1 ? '' : 's'} left this month`
       : (fits
         ? (isRushRequested
-          ? `${remaining} slot${remaining === 1 ? '' : 's'} &bull; Expedited finish by ${est.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`
-          : `${remaining} slot${remaining === 1 ? '' : 's'} remaining`)
+          ? `${remaining} place${remaining === 1 ? '' : 's'} &bull; Expedited finish by ${est.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`
+          : `${remaining} place${remaining === 1 ? '' : 's'} left this month`)
         : 'Too close to your date');
 
     el.setAttribute('aria-label', `${dateLabel}, ${remaining} slot${remaining === 1 ? '' : 's'} available` + (fits ? '' : ', too late for your date'));
@@ -1636,7 +1636,7 @@ async function uploadReferenceMaterial(commissionId) {
 
 // Step 0 -> Step 1
 document.getElementById('toStep1').addEventListener('click', () => {
-  document.getElementById('slotConfirmLine').textContent = `Reserved Production Slot: Week of ${state.slotLabel}` + (isRushRequested ? ' (⚡ Rush Priority)' : '');
+  document.getElementById('slotConfirmLine').textContent = `Reserved start date: ${state.slotLabel}` + (isRushRequested ? ' (⚡ Rush Priority)' : '');
   const nb = document.getElementById('needBy').value;
   if (nb) { 
     document.getElementById('hasDeadline').value = 'Yes'; 
@@ -1782,7 +1782,7 @@ signBtn.addEventListener('click', async () => {
 
     if (error) throw error;
 
-    document.getElementById('sSlot').textContent = `Week of ${state.slotLabel}`;
+    document.getElementById('sSlot').textContent = `${state.slotLabel}`;
     document.getElementById('sType').textContent = state.typeLabel;
     document.getElementById('sTotal').textContent = `$${state.total}`;
     document.getElementById('sDeposit').textContent = `$${state.deposit}`;
