@@ -7,6 +7,8 @@
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0e0c15">
 <title>Track My Commission — The Crow's Quill</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -152,7 +154,7 @@
     <div class="card">
       <span class="badge" id="statusBadge"></span>
       <div class="kv"><span>Book / series</span><span id="sBook">—</span></div>
-      <div class="kv"><span>Production week</span><span id="sSlot">—</span></div>
+      <div class="kv"><span>Start date</span><span id="sSlot">—</span></div>
       <div class="kv"><span>Total price</span><span id="sTotal">—</span></div>
       <div class="kv"><span>Deposit</span><span id="sDeposit">—</span></div>
       <div class="kv"><span>Balance</span><span id="sBalance">—</span></div>
@@ -295,7 +297,7 @@ function renderStatus(row) {
     payTag.textContent = 'Deposit Due';
     payTag.style.color = 'var(--gold-bright)';
     payTitle.textContent = `Deposit Payment Due: ${money(row.deposit_amount)}`;
-    payDesc.textContent = 'Your production week is reserved. If you have not yet received your payment link by email, you can complete your deposit securely right here via Stripe to activate production.';
+    payDesc.textContent = 'Your start date is reserved. If you have not yet received your payment link by email, you can complete your deposit securely right here via Stripe to activate production.';
     payBtnText.textContent = `Pay Deposit via Stripe (${money(row.deposit_amount)}) →`;
   } else if (!row.balance_paid && (row.total_price > row.deposit_amount)) {
     const bal = row.total_price - row.deposit_amount;

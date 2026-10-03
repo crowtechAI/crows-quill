@@ -6,7 +6,9 @@
 <meta name="description" content="Book an illustration commission with The Crow's Quill — select an open week, receive an instant quote, and sign your commission agreement online.">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0e0c15">
-<title>Reserve Commission Slot — The Crow's Quill</title>
+<title>Book a Commission — The Crow's Quill</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -1098,7 +1100,7 @@
   <section class="step" id="step4" aria-labelledby="step4Title">
     <div class="confirm-icon" aria-hidden="true">&checkmark;</div>
     <h2 id="step4Title">Commission Reserved</h2>
-    <p class="lead">Your slot is locked in! A confirmation email with your deposit invoice has been prepared. Once the deposit clears, work begins on your milestone week.</p>
+    <p class="lead">Your slot is locked in! A confirmation email with your deposit invoice has been prepared. Once the deposit clears, work begins on your start date.</p>
 
     <div class="quote-card" style="background: var(--ink-soft); color: var(--parchment); box-shadow: none; border: 1px solid var(--line-gold);">
       <h2 style="color: var(--parchment); border-bottom-color: var(--line);">Reservation Summary</h2>
@@ -1411,7 +1413,7 @@ function renderSlots() {
             </label>
           </div>
           <p class="rush-desc">
-            Your production slot will be fast-tracked to deliver by <strong>${formattedDate}</strong>.
+            Your piece will be fast-tracked to deliver by <strong>${formattedDate}</strong>.
             ${!anyFits ? '<br><span style="color:var(--err);font-weight:600;display:block;margin-top:6px;">No calendar weeks begin early enough to finish by that date. Please contact the studio directly below for emergency turnaround.</span>' : ''}
           </p>
           ${!anyFits ? `
@@ -1431,7 +1433,9 @@ function renderSlots() {
       });
     }
   } else if (tooSoon || !anyFits) {
-    note.textContent = `We ask for at least ${leadTimeWeeks} weeks between booking and your deadline so feedback delays never put your launch at risk. If you need it sooner, you can request an expedited Rush Commission below.`;
+    note.textContent = tooSoon
+      ? `We ask for at least ${leadTimeWeeks} weeks between booking and your deadline so feedback delays never put your launch at risk. If you need it sooner, you can request an expedited Rush Commission below.`
+      : `No start date leaves enough time before your deadline. A later deadline will open more dates, or you can request an expedited Rush Commission below.`;
     if (rushBox) {
       rushBox.innerHTML = `
         <div class="rush-panel">
@@ -1446,7 +1450,7 @@ function renderSlots() {
             </label>
           </div>
           <p class="rush-desc">
-            Expedited scheduling prioritizes your piece and unlocks earlier production weeks to meet your deadline. A +30% priority surcharge applies.
+            Rush moves your piece to the front of the queue so it can start sooner. A +30% priority surcharge applies.
           </p>
         </div>
       `;
