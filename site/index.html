@@ -784,9 +784,10 @@
 
   <!-- Step 1: Character & Brief Details -->
   <section class="step" id="step1" aria-labelledby="step1Title">
-    <div class="kicker">Milestone 2 of 4</div>
-    <h2 id="step1Title">Specify Your Scope &amp; Lore</h2>
+    <div class="kicker">Milestone 2 of 4 &middot; <span id="step1PartLabel">Part 1 of 2</span></div>
+    <h2 id="step1Title">About you &amp; the piece</h2>
     <p class="lead" id="slotConfirmLine"></p>
+    <div id="step1Part1">
 
     <div class="field">
       <label for="name">Author / Client Name *</label>
@@ -859,6 +860,9 @@
     <div class="checks" id="extrasChecks" role="group" aria-labelledby="extrasLabel"></div>
     <p class="hint">Prices marked &ldquo;from&rdquo; are confirmed against your brief before you pay. NSFW art with three or more characters and publishing licences (covers, dust jackets, endpapers, interior illustrations, special editions) are quoted individually: mention them in your brief and your quote will be confirmed.</p>
 
+    </div>
+
+    <div id="step1Part2" style="display:none;">
     <div class="section-label">Characters &amp; pose</div>
 
     <div class="field">
@@ -980,6 +984,7 @@
       <label for="website">Leave this field blank</label>
       <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
     </div>
+    </div>
 
     <div class="estimate-box">
       <div style="font-size: 13px; color: var(--parchment-muted); margin-bottom: 6px;" id="estimateLabel">Estimated Base Quote</div>
@@ -989,8 +994,16 @@
 
     <p class="error-msg" id="step1Error" role="alert"></p>
 
-    <div class="btn-row">
+    <div class="btn-row" id="step1Row1">
       <button class="btn-ghost" id="backTo0">Back</button>
+      <button class="btn" id="toPart2">
+        <span>Continue to art details</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+
+    <div class="btn-row" id="step1Row2" style="display:none;">
+      <button class="btn-ghost" id="backToPart1">Back</button>
       <button class="btn" id="toStep2">
         <span>Generate Formal Quote</span>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -1650,7 +1663,30 @@ document.getElementById('toStep1').addEventListener('click', () => {
     }
   }
   showStep('step1');
+  showStep1Part(1);
 });
+
+// Step 1 is split in two: who you are and what you want, then the art details.
+function showStep1Part(n) {
+  document.getElementById('step1Part1').style.display = n === 1 ? '' : 'none';
+  document.getElementById('step1Part2').style.display = n === 2 ? '' : 'none';
+  document.getElementById('step1Row1').style.display = n === 1 ? '' : 'none';
+  document.getElementById('step1Row2').style.display = n === 2 ? '' : 'none';
+  document.getElementById('step1Title').textContent = n === 1 ? 'About you & the piece' : 'Describe the art';
+  document.getElementById('step1PartLabel').textContent = 'Part ' + n + ' of 2';
+  document.getElementById('step1Error').style.display = 'none';
+  const t = document.getElementById('step1Title'); if (t.scrollIntoView) t.scrollIntoView({ block: 'start', behavior: 'smooth' });
+}
+document.getElementById('toPart2').addEventListener('click', () => {
+  const name = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const err = document.getElementById('step1Error');
+  err.style.display = 'none';
+  if (!name || !email) { err.textContent = 'Please enter your name and email address to continue.'; err.style.display = 'block'; return; }
+  if (!email.includes('@') || !email.includes('.')) { err.textContent = 'Please provide a valid email address.'; err.style.display = 'block'; return; }
+  showStep1Part(2);
+});
+document.getElementById('backToPart1').addEventListener('click', () => showStep1Part(1));
 
 // Step 1 -> Step 0
 document.getElementById('backTo0').addEventListener('click', () => showStep('step0'));
