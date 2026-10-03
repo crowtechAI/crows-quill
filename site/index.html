@@ -1300,7 +1300,8 @@ async function loadData() {
     // picker's "remaining" maths (capacity - booked_count) now means "places left this month".
     slots = (sl || []).filter(r => r.bookable).map(r => ({
       id: r.slot_id, slot_date: r.slot_date, status: r.status,
-      capacity: r.monthly_capacity, booked_count: r.committed
+      capacity: r.monthly_capacity, booked_count: r.committed,
+      rushRemaining: r.rush_remaining == null ? 1 : r.rush_remaining
     }));
     
     renderSlots();
@@ -1342,8 +1343,8 @@ function renderSlots() {
     const dateLabel = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
     
     // Normal turnaround: ~5 weeks (35 days) from slot start.
-    // Rush turnaround: priority fast-track ~7 days from slot start.
-    const estDays = isRushRequested ? 7 : 35;
+    // Rush turnaround: about 2 weeks (14 days) from the start date, one rush piece per month.
+    const estDays = isRushRequested ? 14 : 35;
     const est = new Date(s.slot_date); est.setUTCDate(est.getUTCDate() + estDays);
     
     // Keep a few days spare so slow feedback doesn't push delivery past the deadline.
@@ -1351,7 +1352,10 @@ function renderSlots() {
     const needByDate = needBy ? new Date(needBy + 'T00:00:00Z') : null;
     if (needByDate) needByDate.setUTCDate(needByDate.getUTCDate() - DEADLINE_BUFFER_DAYS);
     let fits = false;
-    if (!needBy) {
+    const rushTaken = isRushRequested && s.rushRemaining <= 0;
+    if (rushTaken) {
+      fits = false;
+    } else if (!needBy) {
       fits = true;
     } else if (isRushRequested) {
       fits = est <= needByDate;
@@ -1361,7 +1365,9 @@ function renderSlots() {
 
     if (fits) anyFits = true;
 
-    const statusNote = !needBy
+    const statusNote = rushTaken
+      ? 'Rush place taken this month'
+      : !needBy
       ? `${remaining} place${remaining === 1 ? '' : 's'} left this month`
       : (fits
         ? (isRushRequested
@@ -1411,7 +1417,10 @@ function renderSlots() {
     if (rushBox) rushBox.innerHTML = '';
   } else if (isRushRequested) {
     const formattedDate = new Date(needBy + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
-    note.innerHTML = '<span style="color:var(--gold-bright);font-weight:600;">⚡ Rush Commission active (+30% priority turnaround).</span> Showing expedited slots for ' + formattedDate + '.';
+    const anyRushLeft = slots.some(x => x.rushRemaining > 0);
+    note.innerHTML = '<span style="color:var(--gold-bright);font-weight:600;">⚡ Rush Commission active (+30% priority turnaround).</span> ' + (!anyRushLeft
+      ? 'The rush place is taken for every open month. Untick Rush to see standard dates, or contact the studio.'
+      : (anyFits ? 'Showing start dates where a rush finish (about two weeks) lands before ' + formattedDate + '.' : 'No start date leaves enough time even with Rush. Try a later deadline.'));
     if (rushBox) {
       rushBox.innerHTML = `
         <div class="rush-panel active">
@@ -1463,7 +1472,7 @@ function renderSlots() {
             </label>
           </div>
           <p class="rush-desc">
-            Rush moves your piece to the front of the queue so it can start sooner. A +30% priority surcharge applies.
+            Rush finishes about two weeks after your start date instead of five. Only one rush piece is taken each month, so it can run out. A +30% priority surcharge applies.
           </p>
         </div>
       `;
