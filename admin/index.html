@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="../config.js"></script>
+<script src="/admin/social.js" defer></script>
 <style>
   :root {
     --ink: #0e0c15;
@@ -221,6 +222,8 @@
       <div id="listWrap"><p class="loading-msg">Loading commissions…</p></div>
       <div id="calendarWrap" style="display:none;"></div>
       <div id="portfolioWrap" style="display:none;"></div>
+      <div id="socialWrap" style="display:none;"></div>
+      <div id="visitorsWrap" style="display:none;"></div>
     </div>
   </div>
 </div>
@@ -289,6 +292,18 @@ function renderSidebar() {
   pfBtn.addEventListener('click', () => { activeView = 'portfolio'; renderSidebar(); showView('portfolio'); });
   wrap.appendChild(pfBtn);
 
+  const socBtn = document.createElement('button');
+  socBtn.className = 'tab' + (activeView === 'social' ? ' active' : '');
+  socBtn.textContent = 'Social posts';
+  socBtn.addEventListener('click', () => { activeView = 'social'; renderSidebar(); showView('social'); });
+  wrap.appendChild(socBtn);
+
+  const visBtn = document.createElement('button');
+  visBtn.className = 'tab' + (activeView === 'visitors' ? ' active' : '');
+  visBtn.textContent = 'Visitors';
+  visBtn.addEventListener('click', () => { activeView = 'visitors'; renderSidebar(); showView('visitors'); });
+  wrap.appendChild(visBtn);
+
   const divider = document.createElement('div');
   divider.style.cssText = 'height:1px;background:var(--line);margin:10px 4px 12px;';
   wrap.appendChild(divider);
@@ -307,8 +322,54 @@ function showView(view) {
   document.getElementById('listWrap').style.display = view === 'commissions' ? 'block' : 'none';
   document.getElementById('calendarWrap').style.display = view === 'calendar' ? 'block' : 'none';
   document.getElementById('portfolioWrap').style.display = view === 'portfolio' ? 'block' : 'none';
+  document.getElementById('socialWrap').style.display = view === 'social' ? 'block' : 'none';
+  document.getElementById('visitorsWrap').style.display = view === 'visitors' ? 'block' : 'none';
+  if (view === 'visitors') renderVisitors();
+  if (view === 'social' && window.renderSocialStudio) window.renderSocialStudio();
   if (view === 'portfolio') renderPortfolioAdmin();
   if (view === 'calendar' && !calendarLoadedOnce) { calendarLoadedOnce = true; renderCalendar(); }
+}
+
+// ---------- Visitors (cookie-less page-view counter) ----------
+const VIS_LABELS = { '/': 'Home page', '/site/': 'Booking form', '/privacy/': 'Privacy policy', '/terms/': 'Terms of service' };
+async function renderVisitors() {
+  const wrap = document.getElementById('visitorsWrap');
+  wrap.innerHTML = '<p class="loading-msg">Loading visitor stats…</p>';
+  const since = new Date(Date.now() - 29 * 864e5).toISOString().slice(0, 10);
+  const { data, error } = await sb.from('page_views').select('day, path, visits').gte('day', since).order('day');
+  if (error) { wrap.innerHTML = '<p class="empty">Could not load visitor stats.</p>'; console.error(error); return; }
+  const rows = data || [];
+  const iso = d => d.toISOString().slice(0, 10);
+  const today = iso(new Date());
+  const last7 = iso(new Date(Date.now() - 6 * 864e5));
+  const sum = f => rows.filter(f).reduce((n, r) => n + r.visits, 0);
+  const home = r => r.path === '/';
+  const perDay = {};
+  rows.filter(home).forEach(r => { perDay[r.day] = (perDay[r.day] || 0) + r.visits; });
+  const days = Array.from({ length: 30 }, (_, i) => iso(new Date(Date.now() - (29 - i) * 864e5)));
+  const max = Math.max(1, ...days.map(d => perDay[d] || 0));
+  const byPath = {};
+  rows.forEach(r => { byPath[r.path] = (byPath[r.path] || 0) + r.visits; });
+  const top = Object.entries(byPath).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+  wrap.innerHTML = `
+    <div class="summary" style="grid-template-columns:repeat(3,1fr);">
+      <div class="tile accent"><div class="k">Home page visits today</div><div class="v">${sum(r => home(r) && r.day === today)}</div></div>
+      <div class="tile"><div class="k">Last 7 days</div><div class="v">${sum(r => home(r) && r.day >= last7)}</div></div>
+      <div class="tile"><div class="k">Last 30 days</div><div class="v">${sum(home)}</div></div>
+    </div>
+    <div class="panel-section" style="margin-top:0;">
+      <h3>Home page visits — last 30 days</h3>
+      <div style="display:flex;align-items:flex-end;gap:3px;height:110px;margin-top:8px;" role="img" aria-label="Daily home page visits for the last 30 days">
+        ${days.map(d => `<div title="${d}: ${perDay[d] || 0}" style="flex:1;min-width:4px;height:${Math.max(3, Math.round((perDay[d] || 0) / max * 100))}%;background:${perDay[d] ? 'var(--bronze-bright)' : 'var(--line)'};border-radius:2px 2px 0 0;"></div>`).join('')}
+      </div>
+      <div class="meta" style="display:flex;justify-content:space-between;"><span>${days[0]}</span><span>${days[29]}</span></div>
+    </div>
+    <div class="panel-section">
+      <h3>Most viewed pages</h3>
+      ${top.length ? top.map(([p, n]) => `<div class="kv"><span>${esc(VIS_LABELS[p] || p)}</span><span>${n}</span></div>`).join('') : '<p class="meta" style="margin:0;">No visits recorded yet — counts start from the first visit after this feature went live.</p>'}
+    </div>
+    <p class="meta">A visit is counted once per browser session per page. Bots are filtered out and your own visits while signed in here aren't counted. No cookies, IP addresses or personal data are stored, so this shows visits, not unique people.</p>`;
 }
 
 // ---------- Portfolio (homepage cards) ----------

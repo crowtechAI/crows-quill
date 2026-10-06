@@ -82,6 +82,17 @@
   .done-icon { width: 56px; height: 56px; color: var(--gold-bright); margin: 0 auto 18px; display: block; }
   .privacy { font-size: 12.5px; color: var(--parchment-muted); margin-top: 16px; text-align: center; }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+  /* iPhone: stop tap-to-zoom (fields under 16px) and date inputs widening the page */
+  html { overflow-x: hidden; max-width: 100%; }
+  body { max-width: 100%; overflow-x: hidden; }
+  input[type="date"], input[type="datetime-local"] {
+    -webkit-appearance: none; appearance: none;
+    min-width: 0; max-width: 100%; display: block; min-height: 46px;
+  }
+  @media (max-width: 768px) {
+    input, select, textarea, input.sign-field { font-size: 16px !important; }
+  }
 </style>
 <script src="/protect.js"></script>
 </head>

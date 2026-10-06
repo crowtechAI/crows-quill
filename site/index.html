@@ -14,6 +14,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="/config.js"></script>
+<script src="/track.js" defer></script>
 
 <style>
   :root {
@@ -725,6 +726,17 @@
       transition-duration: 0.001s !important;
     }
   }
+
+  /* iPhone: stop tap-to-zoom (fields under 16px) and date inputs widening the page */
+  html { overflow-x: hidden; max-width: 100%; }
+  body { max-width: 100%; overflow-x: hidden; }
+  input[type="date"], input[type="datetime-local"] {
+    -webkit-appearance: none; appearance: none;
+    min-width: 0; max-width: 100%; display: block; min-height: 46px;
+  }
+  @media (max-width: 768px) {
+    input, select, textarea, input.sign-field { font-size: 16px !important; }
+  }
 </style>
 <script src="/protect.js"></script>
 </head>
@@ -1333,7 +1345,34 @@ function renderSlots() {
   earliestDeadline.setUTCDate(earliestDeadline.getUTCDate() + leadTimeWeeks * 7);
   const tooSoon = !!needBy && new Date(needBy + 'T00:00:00Z') < earliestDeadline;
 
-  slots.forEach(s => {
+  // With no deadline entered, only offer the current month's open dates (rolling to the
+  // next month with room if this one is full). Once a deadline is entered, offer every
+  // start date, in any month, that the scheduling rules say will finish in time.
+  let listed = slots;
+  let monthNote = '';
+  if (!needBy) {
+    const fmtMonth = key => new Date(key + '-01T00:00:00Z').toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+    const placesLeft = x => { const n = x.capacity - x.booked_count; return n + ' place' + (n === 1 ? '' : 's') + ' left this month.'; };
+    const todayKey = new Date().toISOString().slice(0, 7);
+    let key = todayKey;
+    let inMonth = slots.filter(x => x.slot_date.slice(0, 7) === key);
+    if (!inMonth.length) {
+      key = slots[0].slot_date.slice(0, 7);
+      inMonth = slots.filter(x => x.slot_date.slice(0, 7) === key);
+      monthNote = 'No start dates are left in ' + fmtMonth(todayKey) + ', so these are the next available dates (' + fmtMonth(key) + '). ' + placesLeft(inMonth[0]) + ' ';
+    } else {
+      monthNote = 'Showing available start dates for ' + fmtMonth(key) + '. ' + placesLeft(inMonth[0]) + ' ';
+    }
+    monthNote += 'Need it by a certain date? Enter it above to see the start dates that fit.';
+    listed = inMonth;
+  }
+  if (state.slotId && !listed.some(x => x.id === state.slotId)) {
+    state.slotId = null; state.slotLabel = ''; state.slotDate = null;
+    document.getElementById('toStep1').disabled = true;
+  }
+
+  const shown = [];
+  listed.forEach(s => {
     const el = document.createElement('div');
     el.className = 'slot';
     el.setAttribute('role', 'button');
@@ -1363,27 +1402,24 @@ function renderSlots() {
       fits = !tooSoon && est <= needByDate;
     }
 
-    if (fits) anyFits = true;
+    if (fits) { anyFits = true; shown.push(s); }
 
+    // Places left are stated once in the note under the date box, not on every date.
     const statusNote = rushTaken
       ? 'Rush place taken this month'
-      : !needBy
-      ? `${remaining} place${remaining === 1 ? '' : 's'} left this month`
-      : (fits
-        ? (isRushRequested
-          ? `${remaining} place${remaining === 1 ? '' : 's'} &bull; Expedited finish by ${est.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`
-          : `${remaining} place${remaining === 1 ? '' : 's'} left this month`)
-        : 'Too close to your date');
+      : (fits && needBy && isRushRequested
+        ? `Expedited finish by ${est.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`
+        : (fits ? '' : 'Too close to your date'));
 
     el.setAttribute('aria-label', `${dateLabel}, ${remaining} slot${remaining === 1 ? '' : 's'} available` + (fits ? '' : ', too late for your date'));
-    el.innerHTML = `<div class="d">${dateLabel}${isRushRequested && fits ? ' <span class="rush-badge-slot">⚡ Rush</span>' : ''}</div><div class="m">${statusNote}</div>`;
+    el.innerHTML = `<div class="d">${dateLabel}${isRushRequested && fits ? ' <span class="rush-badge-slot">⚡ Rush</span>' : ''}</div>${statusNote ? `<div class="m">${statusNote}</div>` : ''}`;
     
     if (!fits) {
       el.classList.add('unavailable');
       el.setAttribute('aria-disabled', 'true');
       el.removeAttribute('tabindex');
       if (state.slotId === s.id) { state.slotId = null; state.slotLabel = ''; state.slotDate = null; document.getElementById('toStep1').disabled = true; }
-      grid.appendChild(el);
+      if (!needBy) grid.appendChild(el);
       return;
     }
     
@@ -1411,9 +1447,13 @@ function renderSlots() {
     grid.appendChild(el);
   });
 
+  if (needBy && !grid.children.length) {
+    grid.innerHTML = '<p class="loading-msg">No start date leaves enough time before your deadline. Try a later date, or contact the studio.</p>';
+  }
+
   // Render guidance note and interactive Rush Commission option
   if (!needBy) {
-    note.textContent = '';
+    note.textContent = monthNote;
     if (rushBox) rushBox.innerHTML = '';
   } else if (isRushRequested) {
     const formattedDate = new Date(needBy + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
@@ -1485,6 +1525,17 @@ function renderSlots() {
   } else {
     note.textContent = 'Showing start dates where the estimated finish (about five weeks later) lands at least 5 days before your date, so a slow round of feedback does not put it at risk.';
     if (rushBox) rushBox.innerHTML = '';
+  }
+
+  // State places left once, per month, after the availability check (deadline view)
+  if (needBy && shown.length) {
+    const perMonth = new Map();
+    shown.forEach(x => perMonth.set(x.slot_date.slice(0, 7), x.capacity - x.booked_count));
+    const name = k => new Date(k + '-01T00:00:00Z').toLocaleDateString('en-GB', { month: 'long', timeZone: 'UTC' });
+    const entries = [...perMonth];
+    note.insertAdjacentText('beforeend', entries.length === 1
+      ? ' ' + name(entries[0][0]) + ' has ' + entries[0][1] + ' place' + (entries[0][1] === 1 ? '' : 's') + ' left.'
+      : ' Places left: ' + entries.map(([k, n]) => name(k) + ' ' + n).join(' · ') + '.');
   }
 }
 document.getElementById('needBy').addEventListener('change', () => { if (slots.length) renderSlots(); });

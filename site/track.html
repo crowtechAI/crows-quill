@@ -84,6 +84,17 @@
   .note .meta { color: var(--parchment-muted); font-size: 11.5px; margin-top: 6px; }
   .section-title { font-size: 13px; font-weight: 600; color: var(--gold-bright); text-transform: uppercase; letter-spacing: 0.05em; margin: 28px 0 12px; }
   .ok-msg { color: var(--ok); font-size: 13.5px; margin-top: 10px; display: none; }
+
+  /* iPhone: stop tap-to-zoom (fields under 16px) and date inputs widening the page */
+  html { overflow-x: hidden; max-width: 100%; }
+  body { max-width: 100%; overflow-x: hidden; }
+  input[type="date"], input[type="datetime-local"] {
+    -webkit-appearance: none; appearance: none;
+    min-width: 0; max-width: 100%; display: block; min-height: 46px;
+  }
+  @media (max-width: 768px) {
+    input, select, textarea, input.sign-field { font-size: 16px !important; }
+  }
 </style>
 <script src="/protect.js"></script>
 </head>

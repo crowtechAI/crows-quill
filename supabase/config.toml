@@ -422,3 +422,6 @@ verify_jwt = true
 
 [functions.send-testimonial-request]
 verify_jwt = true
+
+[functions.send-quote-update]
+verify_jwt = true
