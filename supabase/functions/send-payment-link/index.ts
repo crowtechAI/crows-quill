@@ -33,6 +33,21 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // Real admin-only enforcement: verify_jwt=true only checks that *some*
+    // validly-signed JWT was sent, and the public anon key is itself a valid
+    // JWT — so that setting alone does NOT stop a client from calling this.
+    // Explicitly check the caller is the studio admin.
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const token = authHeader.replace(/^Bearer\s+/i, "");
+    const { data: userData } = await admin.auth.getUser(token);
+    const callerId = userData?.user?.id;
+    const { data: isAdmin } = callerId
+      ? await admin.from("studio_admins").select("user_id").eq("user_id", callerId).maybeSingle()
+      : { data: null };
+    if (!isAdmin) {
+      return json({ error: "Only the studio account can send payment links." }, 403);
+    }
+
     const { commission_id, return_url, cancel_url, skip_email } = await req.json();
     if (!commission_id) return json({ error: "commission_id required" }, 400);
 

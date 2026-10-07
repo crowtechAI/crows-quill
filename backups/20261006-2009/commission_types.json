@@ -1,0 +1,10 @@
+[{"id":"portrait1","label":"Portrait — 1 character","category":"character_art","base_price":100.00,"is_estimate":false,"sort_order":1}, 
+ {"id":"half1","label":"Half body — 1 character","category":"character_art","base_price":125.00,"is_estimate":false,"sort_order":2}, 
+ {"id":"full1","label":"Full body — 1 character","category":"character_art","base_price":165.00,"is_estimate":false,"sort_order":3}, 
+ {"id":"portrait2","label":"Portrait — 2 characters","category":"character_art","base_price":160.00,"is_estimate":false,"sort_order":4}, 
+ {"id":"half2","label":"Half body — 2 characters","category":"character_art","base_price":205.00,"is_estimate":false,"sort_order":5}, 
+ {"id":"full2","label":"Full body — 2 characters","category":"character_art","base_price":255.00,"is_estimate":false,"sort_order":6}, 
+ {"id":"scenebasic1","label":"Illustrated scene, basic bg — 1 character","category":"illustrated_scene","base_price":230.00,"is_estimate":true,"sort_order":7}, 
+ {"id":"scenedetail1","label":"Illustrated scene, detailed bg — 1 character","category":"illustrated_scene","base_price":295.00,"is_estimate":true,"sort_order":8}, 
+ {"id":"scenebasic2","label":"Illustrated scene, basic bg — 2 characters","category":"illustrated_scene","base_price":295.00,"is_estimate":true,"sort_order":9}, 
+ {"id":"scenedetail2","label":"Illustrated scene, detailed bg — 2 characters","category":"illustrated_scene","base_price":365.00,"is_estimate":true,"sort_order":10}]
