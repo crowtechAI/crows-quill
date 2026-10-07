@@ -562,6 +562,7 @@ function openPanel(c) {
   panel.classList.remove('wide');
   const quote = c.quotes?.[0];
   const contract = c.contracts?.[0];
+  const needsPriceConfirm = !!(quote && quote.is_estimate && !quote.adjusted_at && !c.deposit_paid);
   const slotDate = c.slot ? new Date(c.slot.slot_date).toLocaleDateString('en-GB', { day:'numeric', month:'long' }) : '—';
 
   const money = v => (v === null || v === undefined || v === '') ? '—' : '$' + v;
@@ -627,8 +628,9 @@ function openPanel(c) {
         <label class="toggle-row" for="depositChk"><span>Deposit paid</span><input type="checkbox" id="depositChk" ${c.deposit_paid ? 'checked' : ''}><span class="sw"></span></label>
         <label class="toggle-row" for="balanceChk"><span>Balance paid</span><input type="checkbox" id="balanceChk" ${c.balance_paid ? 'checked' : ''}><span class="sw"></span></label>
         <div class="panel-actions">
-          <button class="btn-ghost" id="sendPaymentLinkBtn" ${c.balance_paid ? 'disabled' : ''}>${c.balance_paid ? 'Fully paid' : (!c.deposit_paid ? (c.deposit_link_sent_at ? 'Resend deposit link' : 'Send deposit link') : (c.deposit_link_sent_at ? 'Resend balance link' : 'Send balance link'))}</button>
+          <button class="btn-ghost" id="sendPaymentLinkBtn" ${(c.balance_paid || needsPriceConfirm) ? 'disabled' : ''}>${c.balance_paid ? 'Fully paid' : (!c.deposit_paid ? (c.deposit_link_sent_at ? 'Resend deposit link' : 'Send deposit link') : (c.deposit_link_sent_at ? 'Resend balance link' : 'Send balance link'))}</button>
         </div>
+        ${needsPriceConfirm ? '<div class="meta" style="color:var(--bronze-bright);">This is an unconfirmed estimate — review the price under “Quote” below before sending a payment link.</div>' : ''}
         ${c.deposit_link_sent_at && !c.deposit_paid ? `<div class="meta">Link sent ${esc(new Date(c.deposit_link_sent_at).toLocaleString('en-GB'))} — awaiting payment.</div>` : ''}
         <div class="msg" id="paymentLinkMsg" role="status"></div>
         <div class="link-box" id="linkBox">
@@ -638,10 +640,27 @@ function openPanel(c) {
       </div>
 
       ${quote ? `
-      <div class="panel-section">
+      <div class="panel-section" id="quoteSection">
         <h3>Quote</h3>
         <div class="kv"><span>Response</span><span>${esc(quote.response)}</span></div>
         <div class="kv"><span>Sent</span><span>${esc(new Date(quote.sent_at).toLocaleDateString('en-GB'))}</span></div>
+        <div class="kv"><span>Pricing</span><span>${quote.is_estimate ? (quote.adjusted_at ? '✓ Estimate confirmed' : '⚠ Estimate — not yet confirmed') : 'Fixed price'}</span></div>
+        ${quote.adjusted_at ? `<div class="kv"><span>Confirmed</span><span>${esc(new Date(quote.adjusted_at).toLocaleDateString('en-GB'))}${quote.original_total != null && Number(quote.original_total) !== Number(quote.total) ? ` — was $${esc(quote.original_total)}` : ''}</span></div>` : ''}
+        ${quote.is_estimate ? `
+        <div style="margin-top:10px;">
+          <button class="btn-ghost" id="toggleAdjustBtn" type="button">${quote.adjusted_at ? 'Re-adjust price' : 'Review & confirm price'}</button>
+        </div>
+        <div id="adjustBox" style="display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);">
+          <label class="field-label" for="adjustTotal">Confirmed total ($)</label>
+          <input type="number" id="adjustTotal" step="1" min="0" value="${esc(quote.total)}">
+          <label class="field-label" for="adjustReason" style="margin-top:10px;">Reason (shown to client if the price changes)</label>
+          <textarea id="adjustReason" rows="3" placeholder="e.g. Two fully detailed characters plus a rendered background pushed this above the base estimate."></textarea>
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+            <button class="btn" id="confirmPriceBtn" type="button">Save &amp; notify client</button>
+            <button class="btn-ghost" id="confirmAsIsBtn" type="button">Confirm as-is (no email)</button>
+          </div>
+          <div class="msg" id="adjustMsg" role="status"></div>
+        </div>` : ''}
       </div>` : ''}
 
       ${contract ? `
@@ -732,6 +751,53 @@ function openPanel(c) {
     b.textContent = 'Copied ✓';
     setTimeout(() => { b.textContent = 'Copy'; }, 1800);
   });
+
+  const toggleAdjustBtn = document.getElementById('toggleAdjustBtn');
+  if (toggleAdjustBtn) {
+    toggleAdjustBtn.addEventListener('click', () => {
+      const box = document.getElementById('adjustBox');
+      box.style.display = box.style.display === 'none' ? 'block' : 'none';
+    });
+  }
+  const adjustMsgEl = () => document.getElementById('adjustMsg');
+  const flashAdjust = (text, kind) => { const m = adjustMsgEl(); m.className = 'msg show ' + kind; m.textContent = text; };
+
+  const saveConfirmedPrice = async (notify) => {
+    const newTotalInput = document.getElementById('adjustTotal');
+    const reasonInput = document.getElementById('adjustReason');
+    const newTotal = parseFloat(newTotalInput.value);
+    if (!(newTotal >= 0)) { flashAdjust('Enter a valid total.', 'err'); return; }
+    const reason = reasonInput.value.trim();
+    const changed = Number(newTotal) !== Number(quote.total);
+    if (notify && changed && !reason) { flashAdjust('Add a short reason the client will see.', 'err'); return; }
+    const btn = notify ? document.getElementById('confirmPriceBtn') : document.getElementById('confirmAsIsBtn');
+    btn.disabled = true; const origLabel = btn.textContent; btn.textContent = 'Saving…';
+    const newDeposit = Math.round(newTotal * 0.5);
+    const { error: qErr } = await sb.from('quotes').update({
+      original_total: quote.original_total ?? quote.total,
+      total: newTotal,
+      adjustment_reason: reason || null,
+      adjusted_at: new Date().toISOString()
+    }).eq('id', quote.id);
+    if (qErr) { console.error(qErr); btn.disabled = false; btn.textContent = origLabel; flashAdjust('Could not save: ' + qErr.message, 'err'); return; }
+    const { error: cErr } = await sb.from('commissions').update({
+      total_price: newTotal, deposit_amount: newDeposit, updated_at: new Date().toISOString()
+    }).eq('id', c.id);
+    if (cErr) { console.error(cErr); btn.disabled = false; btn.textContent = origLabel; flashAdjust('Price saved, but could not update the commission total: ' + cErr.message, 'err'); return; }
+    if (notify && changed) {
+      const { data, error } = await sb.functions.invoke('send-quote-update', { body: { commission_id: c.id } });
+      if (error) { console.error(error); flashAdjust('Price saved, but the client email failed to send — you can resend from here.', 'err'); btn.disabled = false; btn.textContent = origLabel; loadCommissions(); return; }
+      flashAdjust(data?.emailed === false ? 'Price confirmed, but no email was sent (email isn\'t configured).' : 'Price confirmed and emailed to the client.', 'ok');
+    } else {
+      flashAdjust('Price confirmed.', 'ok');
+    }
+    btn.disabled = false; btn.textContent = origLabel;
+    loadCommissions();
+  };
+  const confirmPriceBtn = document.getElementById('confirmPriceBtn');
+  if (confirmPriceBtn) confirmPriceBtn.addEventListener('click', () => saveConfirmedPrice(true));
+  const confirmAsIsBtn = document.getElementById('confirmAsIsBtn');
+  if (confirmAsIsBtn) confirmAsIsBtn.addEventListener('click', () => saveConfirmedPrice(false));
 
   document.getElementById('sendPaymentLinkBtn').addEventListener('click', async () => {
     const btn = document.getElementById('sendPaymentLinkBtn');
