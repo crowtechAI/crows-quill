@@ -1313,7 +1313,8 @@ async function loadData() {
     slots = (sl || []).filter(r => r.bookable).map(r => ({
       id: r.slot_id, slot_date: r.slot_date, status: r.status,
       capacity: r.monthly_capacity, booked_count: r.committed,
-      rushRemaining: r.rush_remaining == null ? 1 : r.rush_remaining
+      rushRemaining: r.rush_remaining == null ? 1 : r.rush_remaining,
+      taken: !!r.taken
     }));
     
     renderSlots();
@@ -1392,7 +1393,9 @@ function renderSlots() {
     if (needByDate) needByDate.setUTCDate(needByDate.getUTCDate() - DEADLINE_BUFFER_DAYS);
     let fits = false;
     const rushTaken = isRushRequested && s.rushRemaining <= 0;
-    if (rushTaken) {
+    if (s.taken) {
+      fits = false;
+    } else if (rushTaken) {
       fits = false;
     } else if (!needBy) {
       fits = true;
@@ -1405,13 +1408,15 @@ function renderSlots() {
     if (fits) { anyFits = true; shown.push(s); }
 
     // Places left are stated once in the note under the date box, not on every date.
-    const statusNote = rushTaken
-      ? 'Rush place taken this month'
-      : (fits && needBy && isRushRequested
-        ? `Expedited finish by ${est.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`
-        : (fits ? '' : 'Too close to your date'));
+    const statusNote = s.taken
+      ? 'Booked'
+      : (rushTaken
+        ? 'Rush place taken this month'
+        : (fits && needBy && isRushRequested
+          ? `Expedited finish by ${est.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`
+          : (fits ? '' : 'Too close to your date')));
 
-    el.setAttribute('aria-label', `${dateLabel}, ${remaining} slot${remaining === 1 ? '' : 's'} available` + (fits ? '' : ', too late for your date'));
+    el.setAttribute('aria-label', `${dateLabel}` + (s.taken ? ', already booked' : `, ${remaining} slot${remaining === 1 ? '' : 's'} available` + (fits ? '' : ', too late for your date')));
     el.innerHTML = `<div class="d">${dateLabel}${isRushRequested && fits ? ' <span class="rush-badge-slot">⚡ Rush</span>' : ''}</div>${statusNote ? `<div class="m">${statusNote}</div>` : ''}`;
     
     if (!fits) {
