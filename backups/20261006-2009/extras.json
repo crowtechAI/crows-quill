@@ -1,8 +1,0 @@
-[{"id":"pet","label":"Small pet / familiar","price":35.00,"is_percentage":false,"percentage":null,"sort_order":1,"is_from":true,"display_price":"From +$35","option_group":null}, 
- {"id":"creature","label":"Large animal / creature","price":55.00,"is_percentage":false,"percentage":null,"sort_order":2,"is_from":true,"display_price":"From +$55","option_group":null}, 
- {"id":"expression","label":"Alternate expression","price":20.00,"is_percentage":false,"percentage":null,"sort_order":3,"is_from":true,"display_price":"+$20–$35","option_group":null}, 
- {"id":"additional","label":"Additional character","price":80.00,"is_percentage":false,"percentage":null,"sort_order":4,"is_from":true,"display_price":"From +$80","option_group":null}, 
- {"id":"nsfw1","label":"NSFW art — 1 character","price":35.00,"is_percentage":false,"percentage":null,"sort_order":5,"is_from":true,"display_price":"From +$35","option_group":"nsfw"}, 
- {"id":"nsfw2","label":"NSFW art — 2 characters","price":55.00,"is_percentage":false,"percentage":null,"sort_order":6,"is_from":true,"display_price":"From +$55","option_group":"nsfw"}, 
- {"id":"merch","label":"Commercial merchandise licence","price":null,"is_percentage":true,"percentage":50.00,"sort_order":7,"is_from":false,"display_price":"+50%","option_group":null}, 
- {"id":"rush","label":"Rush commission","price":null,"is_percentage":true,"percentage":30.00,"sort_order":8,"is_from":true,"display_price":"+25–40%","option_group":null}]

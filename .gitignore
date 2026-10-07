@@ -11,3 +11,4 @@ supabase/.temp/
 
 # local AI tooling (not for the public repo)
 .claude/
+backups/

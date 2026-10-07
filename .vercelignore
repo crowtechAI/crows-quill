@@ -1,0 +1,8 @@
+# Never publish private data, backups or server-side source
+backups/
+supabase/
+**/*.bak
+**/*.bak.*
+*.pre-redesign.bak
+.git
+node_modules
