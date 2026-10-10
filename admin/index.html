@@ -193,6 +193,17 @@
   .t-quote { font-style:italic; color:var(--lilac); font-size:13.5px; line-height:1.6; margin-top:8px; white-space:pre-wrap; word-break:break-word; }
   .note-meta { color:var(--lilac-dim); font-size:11.5px; margin-top:6px; }
   .file-row .btn-ghost { min-height:34px; padding:6px 12px; font-size:12.5px; flex-shrink:0; margin-left:10px; }
+  .frow { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid rgba(205,196,217,.06); }
+  .frow:last-child { border-bottom:none; }
+  .frow .thumb { width:56px; height:56px; flex-shrink:0; border-radius:6px; background:var(--ink); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; overflow:hidden; font-size:11px; font-weight:600; color:var(--lilac-dim); letter-spacing:.04em; cursor:pointer; }
+  .frow .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+  .frow .finfo { flex:1; min-width:0; }
+  .frow .fname { font-size:13px; color:var(--parchment); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .frow .fmeta { font-size:11.5px; color:var(--lilac-dim); margin-top:2px; }
+  .frow .fbtns { display:flex; gap:6px; flex-shrink:0; }
+  .frow .fbtns .btn-ghost { min-height:34px; padding:6px 12px; font-size:12.5px; }
+  .files-head { display:flex; justify-content:flex-end; margin-bottom:4px; }
+  .files-head .btn-ghost { min-height:32px; padding:5px 12px; font-size:12px; }
   .setup-hint { font-size:12.5px; color:var(--bronze-bright); background:rgba(201,160,95,.1); border:1px solid var(--line-gold); padding:10px 12px; border-radius:6px; margin-bottom:14px; }
   @media (max-width:760px) { .client-row { grid-template-columns:1fr 1fr; } }
 </style>
@@ -547,6 +558,87 @@ function renderList() {
 
 const esc = v => String(v ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 
+// ---------- Client/artist files: preview, view, download ----------
+const FILE_BUCKET = 'commission-files';
+function fileBaseName(path) { return String(path || '').split('/').pop().replace(/^\d{10,}-/, ''); }
+function isImagePath(path) { return /\.(jpe?g|png|gif|webp|avif|bmp)$/i.test(String(path || '')); }
+function fileExtLabel(path) { const m = String(path || '').match(/\.([a-z0-9]+)$/i); return m ? m[1].toUpperCase().slice(0, 4) : 'FILE'; }
+
+function fileRowsHtml(files) {
+  if (!files.length) return '<p class="muted">No files yet.</p>';
+  return (files.length > 1 ? '<div class="files-head"><button class="btn-ghost f-all" type="button">Download all (' + files.length + ')</button></div>' : '') +
+    files.map((f, i) => `
+    <div class="frow">
+      <div class="thumb" data-thumb="${i}" role="button" tabindex="0" aria-label="View ${esc(fileBaseName(f.file_path))}">${isImagePath(f.file_path) ? '' : esc(fileExtLabel(f.file_path))}</div>
+      <div class="finfo">
+        <div class="fname" title="${esc(fileBaseName(f.file_path))}">${esc(fileBaseName(f.file_path))}</div>
+        <div class="fmeta">${esc(String(f.file_type || '').replace('_', ' '))} · from ${f.uploaded_by === 'client' ? 'client' : 'you'}</div>
+      </div>
+      <div class="fbtns">
+        <button class="btn-ghost f-view" type="button" data-i="${i}">View</button>
+        <button class="btn-ghost f-dl" type="button" data-i="${i}">Download</button>
+      </div>
+    </div>`).join('');
+}
+
+async function signedFileUrl(path, downloadName) {
+  const opts = downloadName ? { download: downloadName } : undefined;
+  const { data, error } = await sb.storage.from(FILE_BUCKET).createSignedUrl(path, 600, opts);
+  if (error || !data?.signedUrl) { console.error(error); return null; }
+  return data.signedUrl;
+}
+
+function triggerDownload(url) {
+  const a = document.createElement('a');
+  a.href = url; a.rel = 'noopener'; a.style.display = 'none';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+function wireFileRows(container, files) {
+  if (!container || !files.length) return;
+  const flashBtn = (btn, text) => { const o = btn.dataset.label || btn.textContent; btn.dataset.label = o; btn.textContent = text; setTimeout(() => { btn.textContent = o; }, 1800); };
+
+  // Thumbnails for images (one batched signed-URL request).
+  const imgIdx = files.map((f, i) => isImagePath(f.file_path) ? i : -1).filter(i => i >= 0);
+  if (imgIdx.length) {
+    sb.storage.from(FILE_BUCKET).createSignedUrls(imgIdx.map(i => files[i].file_path), 3600).then(({ data, error }) => {
+      if (error || !data) { console.error(error); return; }
+      data.forEach((d, n) => {
+        const thumb = container.querySelector(`[data-thumb="${imgIdx[n]}"]`);
+        if (thumb && d.signedUrl) thumb.innerHTML = `<img src="${esc(d.signedUrl)}" alt="" loading="lazy">`;
+      });
+    });
+  }
+
+  const view = async (i, btn) => {
+    const url = await signedFileUrl(files[i].file_path);
+    if (!url) { if (btn) flashBtn(btn, 'Failed'); return; }
+    window.open(url, '_blank', 'noopener');
+  };
+  container.querySelectorAll('.f-view').forEach(b => b.addEventListener('click', () => view(Number(b.dataset.i), b)));
+  container.querySelectorAll('[data-thumb]').forEach(t => {
+    t.addEventListener('click', () => view(Number(t.dataset.thumb)));
+    t.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); view(Number(t.dataset.thumb)); } });
+  });
+  container.querySelectorAll('.f-dl').forEach(b => b.addEventListener('click', async () => {
+    b.disabled = true;
+    const f = files[Number(b.dataset.i)];
+    const url = await signedFileUrl(f.file_path, fileBaseName(f.file_path));
+    b.disabled = false;
+    if (!url) return flashBtn(b, 'Failed');
+    triggerDownload(url);
+  }));
+  const all = container.querySelector('.f-all');
+  if (all) all.addEventListener('click', async () => {
+    all.disabled = true;
+    for (const f of files) {
+      const url = await signedFileUrl(f.file_path, fileBaseName(f.file_path));
+      if (url) { triggerDownload(url); await new Promise(r => setTimeout(r, 350)); }
+    }
+    all.disabled = false;
+  });
+}
+
 function labelFromType(id) {
   const map = { portrait1:'Portrait — 1 char', half1:'Half body — 1 char', full1:'Full body — 1 char',
     portrait2:'Portrait — 2 char', half2:'Half body — 2 char', full2:'Full body — 2 char',
@@ -680,7 +772,7 @@ function openPanel(c) {
       <div class="panel-section">
         <h3>Files</h3>
         <div id="fileList">
-          ${(c.commission_files || []).map(f => `<div class="file-row"><span>${esc(String(f.file_path || '').split('/').pop())}</span><span class="ft">${esc(String(f.file_type || '').replace('_',' '))}</span></div>`).join('') || '<p class="muted">No files yet.</p>'}
+          ${fileRowsHtml(c.commission_files || [])}
         </div>
         <div class="upload-box">
           <label class="field-label" for="uploadType">Add a file</label>
@@ -701,6 +793,8 @@ function openPanel(c) {
       <button class="btn" id="saveStatus">Save changes</button>
     </div>
   `;
+
+  wireFileRows(document.getElementById('fileList'), c.commission_files || []);
 
   const copyRefBtn = document.getElementById('copyRefIdBtn');
   if (copyRefBtn) {
@@ -1285,8 +1379,7 @@ function openClientPanel(clientId) {
     <div class="panel-section">
       <h3>Files (${files.length})</h3>
       <div id="clientFiles">
-        ${files.map((f, i) => `<div class="file-row"><span>${esc(fileDisplayName(f.file_path))} <span style="color:var(--lilac-dim);">(${esc(f.file_type)} · ${esc(f.uploaded_by || 'artist')})</span></span><button class="btn-ghost f-dl" data-i="${i}">Download</button></div>`).join('')
-          || '<p class="link-status" style="margin:0;">No files yet.</p>'}
+        ${fileRowsHtml(files)}
       </div>
       <div style="margin-top:14px;">
         ${comms.length > 1 ? `<label for="cUploadFor">Add to commission</label><select id="cUploadFor" style="margin-bottom:8px;">${comms.map(c => `<option value="${esc(c.id)}">${esc(labelFromType(c.commission_type))} · ${fmtDate(c.created_at)}</option>`).join('')}</select>` : ''}
@@ -1378,14 +1471,7 @@ function openClientPanel(clientId) {
     reopen();
   }));
 
-  panel.querySelectorAll('.f-dl').forEach(btn => btn.addEventListener('click', async () => {
-    const f = files[Number(btn.dataset.i)];
-    btn.disabled = true;
-    const { data, error } = await sb.storage.from('commission-files').createSignedUrl(f.file_path, 300);
-    btn.disabled = false;
-    if (error || !data?.signedUrl) { console.error(error); btn.textContent = 'Failed'; return; }
-    window.open(data.signedUrl, '_blank', 'noopener');
-  }));
+  wireFileRows(document.getElementById('clientFiles'), files);
 
   document.getElementById('cUploadBtn').addEventListener('click', async () => {
     const input = document.getElementById('cUploadInput');
