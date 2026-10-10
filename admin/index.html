@@ -204,6 +204,16 @@
   .frow .fbtns .btn-ghost { min-height:34px; padding:6px 12px; font-size:12.5px; }
   .files-head { display:flex; justify-content:flex-end; margin-bottom:4px; }
   .files-head .btn-ghost { min-height:32px; padding:5px 12px; font-size:12px; }
+  .link-status { font-size:12.5px; color:var(--lilac-dim); line-height:1.5; margin:0 0 8px; }
+  .panel-msg { display:none; font-size:13px; line-height:1.5; margin-top:10px; padding:10px 12px; border-radius:8px; }
+  .panel-msg.ok, .panel-msg.err, .panel-msg.warn { display:block; }
+  .panel-msg.ok { color:#8fc78a; background:rgba(110,143,107,.1); border:1px solid rgba(110,143,107,.3); }
+  .panel-msg.err { color:var(--err); background:rgba(217,143,160,.08); border:1px solid rgba(217,143,160,.25); }
+  .panel-msg.warn { color:var(--bronze-bright); background:rgba(201,160,95,.1); border:1px solid var(--line-gold); }
+  .copy-row { display:flex; gap:8px; margin-top:8px; }
+  .copy-row input { font-size:12px; }
+  .copy-row .btn-ghost { min-height:40px; padding:8px 14px; white-space:nowrap; }
+  .panel-section .mini-card .kv { font-size:12.5px; }
   .setup-hint { font-size:12.5px; color:var(--bronze-bright); background:rgba(201,160,95,.1); border:1px solid var(--line-gold); padding:10px 12px; border-radius:6px; margin-bottom:14px; }
   @media (max-width:760px) { .client-row { grid-template-columns:1fr 1fr; } }
 </style>
@@ -343,44 +353,116 @@ function showView(view) {
 
 // ---------- Visitors (cookie-less page-view counter) ----------
 const VIS_LABELS = { '/': 'Home page', '/site/': 'Booking form', '/privacy/': 'Privacy policy', '/terms/': 'Terms of service' };
+let visChartPath = '/';
 async function renderVisitors() {
   const wrap = document.getElementById('visitorsWrap');
   wrap.innerHTML = '<p class="loading-msg">Loading visitor stats…</p>';
-  const since = new Date(Date.now() - 29 * 864e5).toISOString().slice(0, 10);
-  const { data, error } = await sb.from('page_views').select('day, path, visits').gte('day', since).order('day');
+  const iso = d => d.toISOString().slice(0, 10);
+  const dayAgo = n => iso(new Date(Date.now() - n * 864e5));
+  const since = dayAgo(59);
+  const [{ data, error }, comms] = await Promise.all([
+    sb.from('page_views').select('day, path, visits, referrer').gte('day', since).order('day'),
+    allCommissions.length ? Promise.resolve(allCommissions)
+      : sb.from('commissions').select('id, created_at, status, deposit_paid').then(r => r.data || [])
+  ]);
   if (error) { wrap.innerHTML = '<p class="empty">Could not load visitor stats.</p>'; console.error(error); return; }
   const rows = data || [];
-  const iso = d => d.toISOString().slice(0, 10);
-  const today = iso(new Date());
-  const last7 = iso(new Date(Date.now() - 6 * 864e5));
+  const today = dayAgo(0), d6 = dayAgo(6), d13 = dayAgo(13), d29 = dayAgo(29);
   const sum = f => rows.filter(f).reduce((n, r) => n + r.visits, 0);
   const home = r => r.path === '/';
+  const book = r => r.path === '/site/';
+
+  // Week-over-week trend on home page visits
+  const thisWeek = sum(r => home(r) && r.day >= d6);
+  const lastWeek = sum(r => home(r) && r.day >= d13 && r.day < d6);
+  const delta = lastWeek ? Math.round((thisWeek - lastWeek) / lastWeek * 100) : null;
+  const deltaHtml = delta === null ? '' : `<div class="meta" style="margin-top:4px;color:${delta >= 0 ? '#8fc78a' : 'var(--err)'};">${delta >= 0 ? '▲' : '▼'} ${Math.abs(delta)}% vs previous 7 days</div>`;
+
+  // Funnel (last 30 days): visits → booking form → enquiries → signed → deposit paid
+  const homeVisits = sum(r => home(r) && r.day >= d29);
+  const formVisits = sum(r => book(r) && r.day >= d29);
+  const recent = comms.filter(c => (c.created_at || '').slice(0, 10) >= d29);
+  const enquiries = recent.length;
+  const signed = recent.filter(c => ['accepted', 'in_progress', 'delivered'].includes(c.status)).length;
+  const paid = recent.filter(c => c.deposit_paid).length;
+  const steps = [
+    ['Visited the home page', homeVisits],
+    ['Opened the booking form', formVisits],
+    ['Submitted an enquiry', enquiries],
+    ['Signed the contract', signed],
+    ['Paid the deposit', paid]
+  ];
+  const top0 = Math.max(1, steps[0][1], ...steps.map(s => s[1]));
+  const pct = (a, b) => b ? (Math.round(a / b * 1000) / 10) + '%' : '—';
+  const funnelHtml = steps.map(([label, n], i) => `
+    <div style="margin-top:${i ? 12 : 4}px;">
+      <div class="kv" style="border:none;padding:0 0 5px;"><span style="color:var(--parchment);">${label}</span><span><strong style="color:var(--parchment);">${n}</strong>${i ? ` <span style="color:var(--lilac-dim);font-size:12px;">· ${pct(n, steps[i - 1][1])} of previous step</span>` : ''}</span></div>
+      <div style="height:9px;background:var(--ink);border:1px solid var(--line);border-radius:5px;overflow:hidden;"><div style="height:100%;width:${Math.max(n ? 2 : 0, Math.round(n / top0 * 100))}%;background:linear-gradient(90deg,var(--wine-bright),var(--bronze-bright));"></div></div>
+    </div>`).join('');
+  const overall = homeVisits ? pct(paid, homeVisits) : '—';
+
+  // Chart (selectable page)
+  const chartRows = visChartPath === '*' ? rows : rows.filter(r => r.path === visChartPath);
   const perDay = {};
-  rows.filter(home).forEach(r => { perDay[r.day] = (perDay[r.day] || 0) + r.visits; });
-  const days = Array.from({ length: 30 }, (_, i) => iso(new Date(Date.now() - (29 - i) * 864e5)));
+  chartRows.filter(r => r.day >= d29).forEach(r => { perDay[r.day] = (perDay[r.day] || 0) + r.visits; });
+  const days = Array.from({ length: 30 }, (_, i) => dayAgo(29 - i));
   const max = Math.max(1, ...days.map(d => perDay[d] || 0));
+  const pageOpts = [['/', 'Home page'], ['/site/', 'Booking form'], ['*', 'All pages']]
+    .map(([v, l]) => `<option value="${v}"${v === visChartPath ? ' selected' : ''}>${l}</option>`).join('');
+
+  // Traffic sources: a page's first hit from outside the site. Internal navigation is excluded.
+  const bySrc = {};
+  rows.filter(r => r.day >= d29 && (home(r) || r.referrer !== 'direct'))
+    .forEach(r => { bySrc[r.referrer || 'direct'] = (bySrc[r.referrer || 'direct'] || 0) + r.visits; });
+  const srcs = Object.entries(bySrc).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  const srcTotal = srcs.reduce((n, s) => n + s[1], 0) || 1;
+  const srcName = s => s === 'direct' ? 'Direct / unknown' : s;
+
   const byPath = {};
-  rows.forEach(r => { byPath[r.path] = (byPath[r.path] || 0) + r.visits; });
-  const top = Object.entries(byPath).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  rows.filter(r => r.day >= d29).forEach(r => { byPath[r.path] = (byPath[r.path] || 0) + r.visits; });
+  const topPages = Object.entries(byPath).sort((a, b) => b[1] - a[1]).slice(0, 8);
 
   wrap.innerHTML = `
     <div class="summary" style="grid-template-columns:repeat(3,1fr);">
       <div class="tile accent"><div class="k">Home page visits today</div><div class="v">${sum(r => home(r) && r.day === today)}</div></div>
-      <div class="tile"><div class="k">Last 7 days</div><div class="v">${sum(r => home(r) && r.day >= last7)}</div></div>
-      <div class="tile"><div class="k">Last 30 days</div><div class="v">${sum(home)}</div></div>
+      <div class="tile"><div class="k">Last 7 days</div><div class="v">${thisWeek}</div>${deltaHtml}</div>
+      <div class="tile"><div class="k">Last 30 days</div><div class="v">${homeVisits}</div></div>
     </div>
+
     <div class="panel-section" style="margin-top:0;">
-      <h3>Home page visits — last 30 days</h3>
-      <div style="display:flex;align-items:flex-end;gap:3px;height:110px;margin-top:8px;" role="img" aria-label="Daily home page visits for the last 30 days">
+      <h3>Visit → booking funnel · last 30 days</h3>
+      ${funnelHtml}
+      <div class="meta" style="margin-top:14px;">Overall: <strong style="color:var(--parchment);">${overall}</strong> of home page visits ended in a paid deposit. Enquiries and later steps count commissions created in the last 30 days.</div>
+    </div>
+
+    <div class="panel-section">
+      <h3>Where visitors come from · last 30 days</h3>
+      ${srcs.length ? srcs.map(([s, n]) => `
+        <div style="margin-top:9px;">
+          <div class="kv" style="border:none;padding:0 0 4px;"><span style="color:var(--parchment);">${esc(srcName(s))}</span><span>${n} <span style="color:var(--lilac-dim);font-size:12px;">· ${Math.round(n / srcTotal * 100)}%</span></span></div>
+          <div style="height:7px;background:var(--ink);border:1px solid var(--line);border-radius:4px;overflow:hidden;"><div style="height:100%;width:${Math.max(3, Math.round(n / srcTotal * 100))}%;background:var(--bronze-bright);"></div></div>
+        </div>`).join('') : '<p class="meta" style="margin:0;">No source data yet — sources are recorded for visits from now on.</p>'}
+      <div class="meta" style="margin-top:12px;">Tip: add <code>?utm_source=name</code> to a link you share (e.g. <code>?utm_source=instagram-bio</code>) to see exactly which post or profile link brought someone in. Only the site name is stored — never the full link or anything about the person.</div>
+    </div>
+
+    <div class="panel-section">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+        <h3 style="margin:0;">Daily visits — last 30 days</h3>
+        <select id="visChartSel" style="width:auto;padding:6px 10px;font-size:12.5px;" aria-label="Page to chart">${pageOpts}</select>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:3px;height:110px;margin-top:12px;" role="img" aria-label="Daily visits for the last 30 days">
         ${days.map(d => `<div title="${d}: ${perDay[d] || 0}" style="flex:1;min-width:4px;height:${Math.max(3, Math.round((perDay[d] || 0) / max * 100))}%;background:${perDay[d] ? 'var(--bronze-bright)' : 'var(--line)'};border-radius:2px 2px 0 0;"></div>`).join('')}
       </div>
       <div class="meta" style="display:flex;justify-content:space-between;"><span>${days[0]}</span><span>${days[29]}</span></div>
     </div>
+
     <div class="panel-section">
       <h3>Most viewed pages</h3>
-      ${top.length ? top.map(([p, n]) => `<div class="kv"><span>${esc(VIS_LABELS[p] || p)}</span><span>${n}</span></div>`).join('') : '<p class="meta" style="margin:0;">No visits recorded yet — counts start from the first visit after this feature went live.</p>'}
+      ${topPages.length ? topPages.map(([p, n]) => `<div class="kv"><span>${esc(VIS_LABELS[p] || p)}</span><span>${n}</span></div>`).join('') : '<p class="meta" style="margin:0;">No visits recorded yet.</p>'}
     </div>
     <p class="meta">A visit is counted once per browser session per page. Bots are filtered out and your own visits while signed in here aren't counted. No cookies, IP addresses or personal data are stored, so this shows visits, not unique people.</p>`;
+
+  document.getElementById('visChartSel').addEventListener('change', e => { visChartPath = e.target.value; renderVisitors(); });
 }
 
 // ---------- Portfolio (homepage cards) ----------
@@ -1346,12 +1428,16 @@ function openClientPanel(clientId) {
   const since = fmtDate(comms[comms.length - 1].created_at);
 
   panel.innerHTML = `
-    <button class="close" id="closePanel" aria-label="Close panel">×</button>
-    <h2>${esc(cl.name || 'Unknown')}</h2>
-    <div class="panel-email"><a href="mailto:${esc(cl.email || '')}">${esc(cl.email || '')}</a></div>
-    <div class="panel-head"><span class="badge delivered">Paid client</span><span class="link-status" style="margin:0;">Since ${since}</span></div>
-
-    <div class="panel-section">
+    <div class="panel-head">
+      <div>
+        <h2>${esc(cl.name || 'Unknown')}</h2>
+        <div class="panel-email"><a href="mailto:${esc(cl.email || '')}">${esc(cl.email || '')}</a></div>
+        <div class="panel-pills"><span class="badge delivered">Paid client</span><span class="pill">Since ${since}</span></div>
+      </div>
+      <button class="close" id="closePanel" aria-label="Close panel">×</button>
+    </div>
+    <div class="panel-body">
+    <div class="panel-section" style="margin-top:0;">
       <h3>Testimonial</h3>
       ${testimonialsReady ? '' : '<div class="setup-hint">Testimonials aren’t set up yet. Run the <code>20261001100000_testimonials.sql</code> migration in Supabase, then refresh.</div>'}
       <p class="link-status" style="margin:0 0 4px;">Sends the client a private link to rate their experience and write a testimonial. It appears on your homepage as soon as they submit.</p>
@@ -1407,6 +1493,7 @@ function openClientPanel(clientId) {
         <button class="btn-ghost" id="cNoteBtn" style="margin-top:8px;">Save note</button>
         <div class="panel-msg" id="cNoteMsg" role="status" aria-live="polite"></div>
       </div>
+    </div>
     </div>
   `;
 
