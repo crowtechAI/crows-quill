@@ -14,6 +14,15 @@ Deno.serve(async (req) => {
   try {
     const siteUrl = (Deno.env.get("SITE_URL") ?? req.headers.get("origin") ?? "").replace(/\/$/, "");
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    // verify_jwt alone isn't enough (the public anon key is a valid JWT): require the studio admin.
+    const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+    const { data: userData } = await admin.auth.getUser(token);
+    const callerId = userData?.user?.id;
+    const { data: isAdmin } = callerId
+      ? await admin.from("studio_admins").select("user_id").eq("user_id", callerId).maybeSingle()
+      : { data: null };
+    if (!isAdmin) return json({ error: "Only the studio account can send quote updates." }, 403);
+
     const { commission_id } = await req.json();
     if (!commission_id) return json({ error: "commission_id required" }, 400);
 

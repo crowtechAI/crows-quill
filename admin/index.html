@@ -131,6 +131,7 @@
   .msg.show { display:block; }
   .msg.err { color:var(--err); background:rgba(217,143,160,.08); border:1px solid rgba(217,143,160,.25); }
   .msg.ok { color:#8fc78a; background:rgba(110,143,107,.1); border:1px solid rgba(110,143,107,.3); }
+  .msg.warn { color:var(--bronze-bright); background:rgba(201,160,95,.1); border:1px solid var(--line-gold); }
   .file-row { display:flex; justify-content:space-between; align-items:center; gap:10px; font-size:13px; padding:9px 0; border-bottom:1px solid rgba(205,196,217,.06); color:var(--parchment); word-break:break-all; }
   .file-row .ft { flex-shrink:0; font-size:11px; color:var(--lilac-dim); border:1px solid var(--line); padding:2px 8px; border-radius:20px; }
   .upload-box { margin-top:14px; padding-top:14px; border-top:1px dashed var(--line); }
@@ -730,6 +731,93 @@ function labelFromType(id) {
 }
 
 // ---------- Detail panel ----------
+// ---------- Progress updates (shown to the client on their portal) ----------
+async function loadUpdates(c) {
+  const list = document.getElementById('updList');
+  if (!list) return;
+  const { data, error } = await sb.from('commission_updates').select('*').eq('commission_id', c.id).order('created_at', { ascending: false });
+  if (!document.getElementById('updList')) return; // panel was closed meanwhile
+  if (error) { console.error(error); list.innerHTML = '<p class="muted">Updates could not be loaded.</p>'; return; }
+  if (!data.length) { list.innerHTML = '<p class="muted">No updates posted yet.</p>'; return; }
+
+  list.innerHTML = data.map(u => `
+    <div class="brief-text note-item" data-uid="${esc(u.id)}">
+      ${u.message ? `<div>${esc(u.message).replace(/\n/g, '<br>')}</div>` : ''}
+      ${(u.file_paths || []).length ? `<div class="upd-files" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">${u.file_paths.map(p => `<span data-path="${esc(p)}"></span>`).join('')}</div>` : ''}
+      <div class="meta" style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;">
+        <span>${esc(new Date(u.created_at).toLocaleString('en-GB'))}</span>
+        <button class="btn-ghost upd-del" type="button" data-uid="${esc(u.id)}" style="min-height:30px;padding:3px 10px;font-size:12px;">Delete</button>
+      </div>
+    </div>`).join('');
+
+  // Thumbnails / file chips (one batched signed-URL request)
+  const allPaths = [...new Set(data.flatMap(u => u.file_paths || []))];
+  if (allPaths.length) {
+    const { data: signed } = await sb.storage.from(FILE_BUCKET).createSignedUrls(allPaths, 3600);
+    const urlFor = {}; (signed || []).forEach(s => { if (s.signedUrl) urlFor[s.path] = s.signedUrl; });
+    list.querySelectorAll('[data-path]').forEach(el => {
+      const path = el.getAttribute('data-path'), url = urlFor[path];
+      if (!url) { el.textContent = fileBaseName(path); return; }
+      el.outerHTML = isImagePath(path)
+        ? `<a href="${esc(url)}" target="_blank" rel="noopener" title="${esc(fileBaseName(path))}"><img src="${esc(url)}" alt="" loading="lazy" style="width:72px;height:72px;object-fit:cover;border-radius:6px;border:1px solid var(--line);display:block;"></a>`
+        : `<a class="btn-ghost" href="${esc(url)}" target="_blank" rel="noopener" style="min-height:30px;padding:4px 10px;font-size:12px;">${esc(fileBaseName(path))}</a>`;
+    });
+  }
+
+  list.querySelectorAll('.upd-del').forEach(btn => btn.addEventListener('click', async () => {
+    if (!confirm('Delete this update? The client will no longer see it.')) return;
+    const u = data.find(x => x.id === btn.dataset.uid);
+    btn.disabled = true;
+    const { error: delErr } = await sb.from('commission_updates').delete().eq('id', u.id);
+    if (delErr) { console.error(delErr); btn.disabled = false; return; }
+    if ((u.file_paths || []).length) await sb.storage.from(FILE_BUCKET).remove(u.file_paths);
+    loadUpdates(c);
+  }));
+}
+
+async function postUpdate(c) {
+  const msgEl = document.getElementById('updMsg');
+  const filesEl = document.getElementById('updFiles');
+  const box = document.getElementById('updMsgBox');
+  const btn = document.getElementById('postUpdateBtn');
+  const notify = document.getElementById('updNotify').checked;
+  const message = msgEl.value.trim();
+  const files = Array.from(filesEl.files || []);
+  const flash = (text, kind) => { box.className = 'msg show ' + kind; box.textContent = text; };
+  if (!message && !files.length) return flash('Add a message or at least one file.', 'err');
+
+  btn.disabled = true; btn.textContent = 'Posting…'; box.className = 'msg';
+  const paths = [];
+  const fail = async (text) => {
+    if (paths.length) await sb.storage.from(FILE_BUCKET).remove(paths);
+    btn.disabled = false; btn.textContent = 'Post update'; flash(text, 'err');
+  };
+  for (const file of files) {
+    const safe = file.name.replace(/[^\w.\- ]+/g, '_');
+    const path = `${c.id}/updates/${Date.now()}-${safe}`;
+    const { error } = await sb.storage.from(FILE_BUCKET).upload(path, file);
+    if (error) { console.error(error); return fail(`Could not upload ${file.name}, so nothing was posted. ${error.message || ''}`); }
+    paths.push(path);
+  }
+  const { data: row, error: insErr } = await sb.from('commission_updates')
+    .insert({ commission_id: c.id, message: message || null, file_paths: paths }).select().single();
+  if (insErr) { console.error(insErr); return fail('Could not save the update: ' + insErr.message); }
+
+  let note = 'Update posted. The client can now see it on their portal.', kind = 'ok';
+  if (notify) {
+    const { data, error } = await sb.functions.invoke('send-progress-update', { body: { update_id: row.id } });
+    if (error || data?.emailed === false) {
+      console.error(error || data?.emailError);
+      note += ' The email could not be sent' + (data?.emailError ? ` (${data.emailError})` : '') + ', so you may want to let them know yourself.';
+      kind = 'warn';
+    } else note += ' They have been emailed.';
+  }
+  msgEl.value = ''; filesEl.value = '';
+  btn.disabled = false; btn.textContent = 'Post update';
+  flash(note, kind);
+  loadUpdates(c);
+}
+
 function openPanel(c) {
   const overlay = document.getElementById('overlay');
   const panel = document.getElementById('panel');
@@ -851,6 +939,21 @@ function openPanel(c) {
         </div>
       </div>
 
+      <div class="panel-section" id="updatesSection">
+        <h3>Progress updates for the client</h3>
+        <p class="muted" style="margin:0 0 10px;font-size:12.5px;">Share a work-in-progress image or note. It appears on the client's portal so they can see how the piece is coming along.</p>
+        <div id="updList"><p class="muted">Loading…</p></div>
+        <div class="upload-box">
+          <label class="field-label" for="updMsg">New update</label>
+          <textarea id="updMsg" rows="3" maxlength="4000" placeholder="e.g. Sketch stage is ready. Lineart is next. Let me know if the pose feels right."></textarea>
+          <label class="field-label" for="updFiles" style="margin-top:10px;">Images or files (optional)</label>
+          <input type="file" id="updFiles" multiple accept="image/*,.pdf">
+          <label style="display:flex;gap:8px;align-items:center;margin-top:10px;font-size:13px;color:var(--parchment);cursor:pointer;"><input type="checkbox" id="updNotify" checked style="width:auto;min-height:0;margin:0;"> Email the client that there's an update</label>
+          <button class="btn" id="postUpdateBtn" type="button" style="margin-top:10px;width:100%;">Post update</button>
+          <div class="msg" id="updMsgBox" role="status"></div>
+        </div>
+      </div>
+
       <div class="panel-section">
         <h3>Files</h3>
         <div id="fileList">
@@ -877,6 +980,8 @@ function openPanel(c) {
   `;
 
   wireFileRows(document.getElementById('fileList'), c.commission_files || []);
+  loadUpdates(c);
+  document.getElementById('postUpdateBtn').addEventListener('click', () => postUpdate(c));
 
   const copyRefBtn = document.getElementById('copyRefIdBtn');
   if (copyRefBtn) {

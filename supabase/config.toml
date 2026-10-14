@@ -425,3 +425,9 @@ verify_jwt = true
 
 [functions.send-quote-update]
 verify_jwt = true
+
+[functions.get-portal-updates]
+verify_jwt = true
+
+[functions.send-progress-update]
+verify_jwt = true

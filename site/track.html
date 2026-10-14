@@ -97,6 +97,17 @@
   }
 </style>
 <script src="/protect.js"></script>
+<style>
+  .upd-card { background:rgba(30,22,38,.6); border:1px solid var(--line-gold); border-radius:var(--radius-md); padding:16px 18px; margin-bottom:14px; }
+  .upd-card .upd-date { font-size:11.5px; color:var(--parchment-muted); letter-spacing:.04em; text-transform:uppercase; margin-bottom:8px; }
+  .upd-card .upd-msg { font-size:14.5px; line-height:1.6; color:var(--parchment); white-space:normal; }
+  .upd-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin-top:12px; }
+  .upd-grid figure { margin:0; }
+  .upd-grid img { width:100%; aspect-ratio:1/1; object-fit:cover; border-radius:8px; border:1px solid var(--line-gold); display:block; background:var(--ink); }
+  .upd-grid a.dl { display:inline-block; margin-top:5px; font-size:12px; color:var(--gold-bright); text-decoration:underline; }
+  .upd-files a { display:inline-block; margin:8px 8px 0 0; font-size:13px; color:var(--gold-bright); text-decoration:underline; }
+  .upd-new { display:inline-block; font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--gold-bright); background:rgba(201,168,76,.12); border:1px solid var(--line-gold); padding:2px 7px; border-radius:4px; margin-left:8px; vertical-align:middle; }
+</style>
 </head>
 <body>
 
@@ -153,6 +164,11 @@
       <div class="kv"><span>Total price</span><span id="sTotal">—</span></div>
       <div class="kv"><span>Deposit</span><span id="sDeposit">—</span></div>
       <div class="kv"><span>Balance</span><span id="sBalance">—</span></div>
+    </div>
+
+    <div id="updatesBlock" style="display:none;">
+      <div class="section-title">Progress from the studio</div>
+      <div id="updatesList"></div>
     </div>
 
     <div class="section-title">Notes</div>
@@ -216,6 +232,7 @@ document.getElementById('lookupBtn').addEventListener('click', async () => {
 
     current = { id: cid, email };
     renderStatus(row);
+    loadPortalUpdates();
     document.getElementById('lookupView').style.display = 'none';
     document.getElementById('statusView').style.display = 'block';
   } catch (e) {
@@ -271,6 +288,32 @@ function renderStatus(row) {
   notesWrap.innerHTML = notes.length ? notes.map(n => `
     <div class="note">${escapeHtml(n.note)}<div class="meta">${new Date(n.created_at).toLocaleString('en-GB')} — ${n.created_by === 'artist' ? 'From the studio' : 'You'}</div></div>
   `).join('') : '<p style="color:var(--parchment-muted);font-size:13.5px;">Nothing yet.</p>';
+}
+
+async function loadPortalUpdates() {
+  const block = document.getElementById('updatesBlock');
+  const list = document.getElementById('updatesList');
+  if (!current || !block) return;
+  try {
+    const { data, error } = await sb.functions.invoke('get-portal-updates', { body: { commission_id: current.id, email: current.email } });
+    if (error) throw error;
+    const ups = (data && data.updates) || [];
+    if (!ups.length) { block.style.display = 'none'; return; }
+    list.innerHTML = ups.map((u, i) => {
+      const imgs = (u.files || []).filter(f => f.isImage);
+      const docs = (u.files || []).filter(f => !f.isImage);
+      return `<div class="upd-card">
+        <div class="upd-date">${new Date(u.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}${i === 0 ? '<span class="upd-new">Latest</span>' : ''}</div>
+        ${u.message ? `<div class="upd-msg">${escapeHtml(u.message).replace(/\n/g, '<br>')}</div>` : ''}
+        ${imgs.length ? `<div class="upd-grid">${imgs.map(f => `<figure><a href="${f.url}" target="_blank" rel="noopener"><img src="${f.url}" alt="Progress image: ${escapeHtml(f.name)}" loading="lazy"></a><a class="dl" href="${f.downloadUrl || f.url}">Download</a></figure>`).join('')}</div>` : ''}
+        ${docs.length ? `<div class="upd-files">${docs.map(f => `<a href="${f.downloadUrl || f.url}" target="_blank" rel="noopener">${escapeHtml(f.name)}</a>`).join('')}</div>` : ''}
+      </div>`;
+    }).join('');
+    block.style.display = 'block';
+  } catch (e) {
+    console.error('Could not load progress updates', e);
+    block.style.display = 'none';
+  }
 }
 
 function escapeHtml(s) {
